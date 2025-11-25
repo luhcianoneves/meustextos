@@ -21,6 +21,9 @@ const App: React.FC = () => {
   const [newCollectionName, setNewCollectionName] = useState('');
   const [isInitializing, setIsInitializing] = useState(true);
   
+  // Edit State
+  const [entryToEdit, setEntryToEdit] = useState<TextEntry | null>(null);
+  
   // Settings State
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>({ url: '', key: '', isEnabled: false, email: '', password: '' });
 
@@ -58,6 +61,7 @@ const App: React.FC = () => {
     setEntries(updated);
     // 2. Persist (Local + Cloud)
     saveTextEntry(entry);
+    setEntryToEdit(null); // Clear edit state
     setViewState(ViewState.LIBRARY);
   };
 
@@ -67,6 +71,11 @@ const App: React.FC = () => {
       setEntries(updated);
       // 2. Persist deletion
       await deleteTextEntry(id);
+  };
+
+  const handleEditEntry = (entry: TextEntry) => {
+      setEntryToEdit(entry);
+      setViewState(ViewState.EDITOR);
   };
 
   const toggleFavorite = (id: string) => {
@@ -103,6 +112,13 @@ const App: React.FC = () => {
       setShowSettings(false);
   };
 
+  const handleNavClick = (view: ViewState) => {
+      setViewState(view);
+      if (view === ViewState.EDITOR) {
+          setEntryToEdit(null); // Reset edit mode when clicking "Escrever" manually
+      }
+  };
+
   if (isInitializing) {
       return (
           <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-500 gap-2">
@@ -134,7 +150,7 @@ const App: React.FC = () => {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setViewState(tab.id)}
+                        onClick={() => handleNavClick(tab.id as ViewState)}
                         className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                             viewState === tab.id 
                             ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' 
@@ -171,8 +187,8 @@ const App: React.FC = () => {
       <div className="flex flex-1 max-w-7xl mx-auto w-full overflow-hidden">
         {/* Main Content Area */}
         <main className={`flex-1 p-4 sm:p-6 overflow-y-auto transition-all duration-300 ${showBible ? 'mr-0' : 'mr-0'}`}>
-            {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} />}
-            {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} />}
+            {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} initialEntry={entryToEdit} />}
+            {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} onEdit={handleEditEntry} />}
             {viewState === ViewState.STATS && <StatsDashboard entries={entries} />}
         </main>
 
