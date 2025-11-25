@@ -40,6 +40,14 @@
         color: #94a3b8;
         cursor: text;
       }
+      /* Editor Content Styling */
+      .rich-editor-content {
+        color: #020617 !important; /* Force black in light mode */
+      }
+      .dark .rich-editor-content {
+        color: #e2e8f0 !important; /* Force light in dark mode */
+      }
+      
       .rich-content img, .rich-editor-content img {
         max-width: 100%;
         height: auto;
@@ -56,20 +64,23 @@
         padding-left: 1.5rem;
         margin: 1rem 0;
       }
-      .rich-content blockquote {
+      .rich-content blockquote, .rich-editor-content blockquote {
         border-left: 4px solid #e2e8f0;
         padding-left: 1rem;
         font-style: italic;
         color: #475569;
+        margin: 1rem 0;
       }
+      .rich-content h1, .rich-editor-content h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+      .rich-content h2, .rich-editor-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+      
       /* Dark mode overrides for rich content */
-      .dark .rich-content blockquote {
+      .dark .rich-content blockquote, .dark .rich-editor-content blockquote {
         border-left-color: #475569;
         color: #94a3b8;
       }
       .dark .rich-editor-content {
         background-color: #1e293b;
-        color: #e2e8f0;
         border-color: #334155;
       }
       #error-boundary {
@@ -78,6 +89,14 @@
         text-align: center;
         color: #ef4444;
         font-family: sans-serif;
+      }
+      /* PDF Export helper class */
+      .pdf-export-container {
+        background-color: white;
+        color: black;
+        padding: 40px;
+        font-family: 'Merriweather', serif;
+        width: 800px; /* Fixed width for A4 ratio simulation */
       }
     </style>
   <script type="importmap">
@@ -89,6 +108,7 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
     "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.45.0"
   }
 }
