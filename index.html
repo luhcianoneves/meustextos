@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -42,10 +43,14 @@
       }
       /* Editor Content Styling */
       .rich-editor-content {
-        color: #020617 !important; /* Force black in light mode */
+        color: #000000 !important; /* Force black in light mode */
       }
       .dark .rich-editor-content {
         color: #e2e8f0 !important; /* Force light in dark mode */
+      }
+      
+      .rich-content, .rich-editor-content {
+          color: #000000;
       }
       
       .rich-content img, .rich-editor-content img {
@@ -71,8 +76,10 @@
         color: #475569;
         margin: 1rem 0;
       }
-      .rich-content h1, .rich-editor-content h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
-      .rich-content h2, .rich-editor-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+      .rich-content h1, .rich-editor-content h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; color: #000000; }
+      .rich-content h2, .rich-editor-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; color: #000000; }
+      .rich-content p, .rich-editor-content p { color: #000000; }
+      .rich-content li, .rich-editor-content li { color: #000000; }
       
       /* Dark mode overrides for rich content */
       .dark .rich-content blockquote, .dark .rich-editor-content blockquote {
@@ -83,6 +90,11 @@
         background-color: #1e293b;
         border-color: #334155;
       }
+      .dark .rich-content p, .dark .rich-editor-content p { color: #e2e8f0; }
+      .dark .rich-content h1, .dark .rich-editor-content h1 { color: #ffffff; }
+      .dark .rich-content h2, .dark .rich-editor-content h2 { color: #f1f5f9; }
+      .dark .rich-content li, .dark .rich-editor-content li { color: #e2e8f0; }
+
       #error-boundary {
         display: none;
         padding: 40px;
