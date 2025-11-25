@@ -1,0 +1,7 @@
+{
+  "name": "Luciano's Scribe",
+  "description": "An intelligent text organizer for original and biblical writings, featuring AI-powered correction, tagging, and searching capabilities.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

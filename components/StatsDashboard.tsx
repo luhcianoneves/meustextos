@@ -1,0 +1,163 @@
+import React, { useMemo } from 'react';
+import { TextEntry } from '../types';
+import { BarChart3, Type, Hash, CalendarCheck, Network } from 'lucide-react';
+
+interface StatsDashboardProps {
+  entries: TextEntry[];
+}
+
+export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
+  const totalTexts = entries.length;
+  
+  // Calculate total words
+  const totalWords = entries.reduce((acc, entry) => {
+    const div = document.createElement('div');
+    div.innerHTML = entry.correctedBody;
+    const text = div.textContent || div.innerText || "";
+    return acc + text.trim().split(/\s+/).length;
+  }, 0);
+
+  // Tag frequency
+  const tagCounts: Record<string, number> = {};
+  entries.forEach(entry => {
+    entry.tags.forEach(tag => {
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+  });
+  
+  const sortedTags = Object.entries(tagCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10);
+
+  // Prepare Mind Map Data
+  const mindMapData = useMemo(() => {
+      // Pick top 6 tags for the "Planets"
+      const topTags = sortedTags.slice(0, 6).map(([t]) => t);
+      const nodes: { id: string, type: 'tag' | 'text', label: string, x: number, y: number, r: number, color: string }[] = [];
+      const links: { x1: number, y1: number, x2: number, y2: number }[] = [];
+
+      const centerX = 400;
+      const centerY = 250;
+      
+      topTags.forEach((tag, i) => {
+          const angle = (i / topTags.length) * 2 * Math.PI;
+          const planetR = 150;
+          const px = centerX + Math.cos(angle) * planetR;
+          const py = centerY + Math.sin(angle) * planetR;
+
+          // Add Tag Node (Planet)
+          nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#6366f1' }); // Indigo
+
+          // Find connected texts (Moons)
+          const relatedTexts = entries.filter(e => e.tags.includes(tag)).slice(0, 4);
+          relatedTexts.forEach((txt, j) => {
+               const moonAngle = (j / relatedTexts.length) * 2 * Math.PI;
+               const moonR = 50;
+               const mx = px + Math.cos(moonAngle) * moonR;
+               const my = py + Math.sin(moonAngle) * moonR;
+               
+               // Only add if not exists (texts can belong to multiple tags, simple dedupe by ID would require complex layouting, allowing overlap for this simple viz)
+               nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle, x: mx, y: my, r: 6, color: '#94a3b8' });
+               links.push({ x1: px, y1: py, x2: mx, y2: my });
+          });
+          
+          // Link to Center (Abstract Core)
+          links.push({ x1: centerX, y1: centerY, x2: px, y2: py });
+      });
+
+      // Core Node
+      nodes.push({ id: 'core', type: 'tag', label: 'Luciano\'s Scribe', x: centerX, y: centerY, r: 10, color: '#fbbf24' });
+
+      return { nodes, links };
+  }, [entries, sortedTags]);
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
+      <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
+        <BarChart3 className="text-indigo-500" />
+        Estatísticas de Produtividade
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Cards */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
+                <CalendarCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Total de Textos</p>
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{totalTexts}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+                <Type className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Palavras Escritas</p>
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{totalWords.toLocaleString('pt-BR')}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-full">
+                <Hash className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Tags Únicas</p>
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{Object.keys(tagCounts).length}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mind Map */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Network className="w-5 h-5"/> Galáxia de Tópicos (Mapa Mental)</h3>
+          <p className="text-sm text-slate-500 mb-4">Visualização das suas principais tags e como os textos orbitam ao redor delas.</p>
+          
+          <div className="w-full overflow-hidden border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 flex justify-center">
+              <svg width="800" height="500" viewBox="0 0 800 500" className="w-full h-auto">
+                  {/* Lines */}
+                  {mindMapData.links.map((link, i) => (
+                      <line key={i} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2} stroke="#cbd5e1" strokeWidth="1" className="dark:stroke-slate-700" />
+                  ))}
+                  {/* Nodes */}
+                  {mindMapData.nodes.map((node, i) => (
+                      <g key={i}>
+                          <circle cx={node.x} cy={node.y} r={node.r} fill={node.color} className="shadow-sm" />
+                          <text 
+                            x={node.x} 
+                            y={node.y + node.r + 12} 
+                            textAnchor="middle" 
+                            className={`text-[10px] font-medium fill-slate-600 dark:fill-slate-300 pointer-events-none ${node.type === 'tag' ? 'font-bold uppercase tracking-wider' : ''}`}
+                          >
+                              {node.label.length > 20 ? node.label.substring(0,18)+'...' : node.label}
+                          </text>
+                      </g>
+                  ))}
+              </svg>
+          </div>
+      </div>
+
+      {/* Tag Cloud List */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Detalhes dos Tópicos</h3>
+        <div className="flex flex-wrap gap-3">
+            {sortedTags.map(([tag, count], index) => (
+                <div key={tag} className="flex items-center bg-slate-50 dark:bg-slate-700 rounded-full px-4 py-2 border border-slate-200 dark:border-slate-600">
+                    <span className="text-slate-700 dark:text-slate-200 font-medium mr-2">{tag}</span>
+                    <span className="bg-indigo-100 dark:bg-indigo-500 text-indigo-700 dark:text-white text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
+                </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
