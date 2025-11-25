@@ -3,16 +3,35 @@ import { ProcessedContent, Slide } from "../types";
 
 // Helper to initialize AI only when needed
 const getAIClient = () => {
-  // Vercel only exposes variables to the browser if they start with VITE_ or REACT_APP_
-  // We check all possibilities to ensure it works in any environment
-  const apiKey = process.env.API_KEY || 
-                 process.env.VITE_API_KEY || 
-                 process.env.REACT_APP_API_KEY ||
-                 (import.meta as any).env?.VITE_API_KEY;
+  let apiKey = '';
+
+  // 1. Try standard process.env (Node/Webpack) - Safely
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      apiKey = process.env.VITE_API_KEY || 
+               process.env.API_KEY || 
+               process.env.REACT_APP_API_KEY || '';
+    }
+  } catch (e) {
+    // Ignore ReferenceError if process is not defined
+  }
+
+  // 2. Try import.meta.env (Vite/Modern)
+  if (!apiKey) {
+    try {
+      // @ts-ignore
+      if (import.meta && import.meta.env) {
+        // @ts-ignore
+        apiKey = import.meta.env.VITE_API_KEY || import.meta.env.API_KEY || '';
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
   
   if (!apiKey) {
-    console.error("API Key not found in environment variables (API_KEY, VITE_API_KEY, or REACT_APP_API_KEY).");
-    throw new Error("Chave de API não encontrada. No Vercel, crie uma variável chamada 'VITE_API_KEY'.");
+    console.error("API Key not found. Please set VITE_API_KEY in Vercel environment variables.");
+    throw new Error("Chave de API não encontrada. No Vercel, crie uma variável chamada 'VITE_API_KEY' com sua chave do Google Gemini.");
   }
   
   return new GoogleGenAI({ apiKey });
