@@ -7,9 +7,10 @@ import { TextEntry, Collection } from '../types';
 interface TextEditorProps {
   onSave: (entry: TextEntry) => void;
   collections: Collection[];
+  initialEntry: TextEntry | null;
 }
 
-export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) => {
+export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, initialEntry }) => {
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [title, setTitle] = useState('');
   const [selectedCollection, setSelectedCollection] = useState<string>('');
@@ -22,6 +23,26 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
   const editorRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load Initial Data if editing
+  useEffect(() => {
+    if (initialEntry) {
+        setTitle(initialEntry.correctedTitle || initialEntry.originalTitle);
+        setDate(initialEntry.creationDate);
+        setSelectedCollection(initialEntry.collectionId || '');
+        if (editorRef.current) {
+            editorRef.current.innerHTML = initialEntry.correctedBody || initialEntry.originalBody;
+        }
+        setPreviousVersions(initialEntry.versions || []);
+    } else {
+        // Reset if creating new
+        setTitle('');
+        setDate(new Date().toISOString().split('T')[0]);
+        setSelectedCollection('');
+        if (editorRef.current) editorRef.current.innerHTML = '';
+        setPreviousVersions([]);
+    }
+  }, [initialEntry]);
 
   // Auto-save sketch version every 30s (simulated logic for "History")
   useEffect(() => {
@@ -145,7 +166,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
       const processed = await processTextEntry(title, bodyContent);
       
       const newEntry: TextEntry = {
-        id: crypto.randomUUID(),
+        // Use existing ID if editing, otherwise create new
+        id: initialEntry ? initialEntry.id : crypto.randomUUID(),
         originalTitle: title,
         originalBody: bodyContent,
         correctedTitle: processed.correctedTitle,
@@ -155,16 +177,22 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
         bibleCitations: processed.bibleCitations || [],
         creationDate: date,
         savedAt: Date.now(),
-        isFavorite: false,
+        // Preserve favorite status if editing
+        isFavorite: initialEntry ? initialEntry.isFavorite : false,
         collectionId: selectedCollection,
         versions: previousVersions
       };
 
       onSave(newEntry);
-      setTitle('');
-      if (editorRef.current) editorRef.current.innerHTML = '';
-      setPreviousVersions([]);
-      alert("Texto salvo e organizado!");
+      
+      // Only clear if not editing (or handled by parent unmount)
+      if (!initialEntry) {
+        setTitle('');
+        if (editorRef.current) editorRef.current.innerHTML = '';
+        setPreviousVersions([]);
+      }
+      
+      alert(initialEntry ? "Texto atualizado com sucesso!" : "Texto salvo e organizado!");
     } catch (error) {
       console.error(error);
       alert("Erro ao processar.");
@@ -186,7 +214,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <Sparkles className="text-indigo-500 w-6 h-6" />
-            Novo Texto
+            {initialEntry ? 'Editar Texto' : 'Novo Texto'}
           </h2>
           
           {/* Version History Dropdown */}
@@ -328,7 +356,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
             <div
               ref={editorRef}
               contentEditable
-              className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-slate-950 dark:text-slate-100 overflow-y-auto"
+              className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-black dark:text-slate-100 overflow-y-auto"
               data-placeholder="Comece a escrever ou importe um áudio..."
             />
           </div>
@@ -341,7 +369,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
                 isProcessing ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
               }`}
             >
-              {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processando...</> : <><Save className="w-5 h-5" /> Salvar</>}
+              {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processando...</> : <><Save className="w-5 h-5" /> {initialEntry ? 'Atualizar Texto' : 'Salvar'}</>}
             </button>
           </div>
         </div>
