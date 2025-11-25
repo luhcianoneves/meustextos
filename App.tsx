@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { LoginScreen } from './components/LoginScreen';
 import { TextEditor } from './components/TextEditor';
@@ -5,7 +6,7 @@ import { Library } from './components/Library';
 import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
 import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
-import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage } from './services/storageService';
+import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
 import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -58,6 +59,14 @@ const App: React.FC = () => {
     // 2. Persist (Local + Cloud)
     saveTextEntry(entry);
     setViewState(ViewState.LIBRARY);
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+      // 1. Update UI
+      const updated = entries.filter(e => e.id !== id);
+      setEntries(updated);
+      // 2. Persist deletion
+      await deleteTextEntry(id);
   };
 
   const toggleFavorite = (id: string) => {
@@ -163,7 +172,7 @@ const App: React.FC = () => {
         {/* Main Content Area */}
         <main className={`flex-1 p-4 sm:p-6 overflow-y-auto transition-all duration-300 ${showBible ? 'mr-0' : 'mr-0'}`}>
             {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} />}
-            {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} />}
+            {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} />}
             {viewState === ViewState.STATS && <StatsDashboard entries={entries} />}
         </main>
 
