@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2 } from 'lucide-react';
+import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2, Edit } from 'lucide-react';
 import { TextEntry, Collection, Slide } from '../types';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
@@ -11,9 +11,10 @@ interface LibraryProps {
   collections: Collection[];
   onToggleFavorite: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (entry: TextEntry) => void;
 }
 
-export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite, onDelete }) => {
+export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite, onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedCollection, setSelectedCollection] = useState('');
@@ -317,6 +318,7 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
                                 </button>
                             </div>
                             <div className="flex gap-2">
+                                <button onClick={() => onEdit(entry)} className="p-2 text-indigo-600 hover:bg-white rounded" title="Editar Texto"><Edit className="w-4 h-4"/></button>
                                 <button onClick={() => handleShare(entry)} className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded" title="Compartilhar Link"><Share2 className="w-4 h-4"/></button>
                                 <button onClick={() => exportToPDF(entry)} className="p-2 text-indigo-600 hover:bg-white rounded" title="Exportar PDF Organizado"><FileText className="w-4 h-4"/></button>
                                 <button onClick={() => handleDelete(entry)} className="p-2 text-red-600 hover:bg-red-50 rounded" title="Excluir Texto"><Trash2 className="w-4 h-4"/></button>
@@ -324,7 +326,7 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
                         </div>
 
                         {/* Body */}
-                        <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content mb-8" dangerouslySetInnerHTML={{ __html: entry.correctedBody }} />
+                        <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content mb-8 text-black dark:text-slate-200" dangerouslySetInnerHTML={{ __html: entry.correctedBody }} />
 
                         {/* Cross Referencing */}
                         {getRelatedTexts(entry).length > 0 && (
