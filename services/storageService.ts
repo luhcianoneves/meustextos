@@ -99,6 +99,26 @@ export const saveTextEntry = async (entry: TextEntry) => {
   }
 };
 
+export const deleteTextEntry = async (id: string) => {
+    // 1. Local
+    const currentTexts = await loadTextsLocal();
+    const updatedTexts = currentTexts.filter(t => t.id !== id);
+    localStorage.setItem(STORAGE_KEY_TEXTS, JSON.stringify(updatedTexts));
+
+    // 2. Supabase
+    if (supabase) {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { error } = await supabase.from('texts').delete().eq('id', id);
+                if (error) console.error("Supabase Delete Error:", error.message);
+            }
+        } catch (err) {
+            console.error("Supabase Delete Exception:", err);
+        }
+    }
+};
+
 export const saveCollection = async (collection: Collection) => {
     // 1. Local
     const current = await loadCollectionsLocal();
