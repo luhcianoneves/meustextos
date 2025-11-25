@@ -4,6 +4,7 @@ import { ProcessedContent, Slide } from "../types";
 // Helper to initialize AI only when needed
 const getAIClient = () => {
   let apiKey = '';
+  console.log("Luciano's Scribe: Initializing AI Client...");
 
   // 1. Try standard process.env (Node/Webpack) - Safely
   try {
@@ -30,8 +31,10 @@ const getAIClient = () => {
   }
   
   if (!apiKey) {
-    console.error("API Key not found. Please set VITE_API_KEY in Vercel environment variables.");
-    throw new Error("Chave de API não encontrada. No Vercel, crie uma variável chamada 'VITE_API_KEY' com sua chave do Google Gemini.");
+    console.error("API Key NOT found in environment variables.");
+    throw new Error("Chave de API não encontrada. No Vercel, vá em Settings > Environment Variables e adicione 'VITE_API_KEY'.");
+  } else {
+    console.log("API Key found successfully.");
   }
   
   return new GoogleGenAI({ apiKey });
