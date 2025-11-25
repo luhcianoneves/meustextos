@@ -3,11 +3,16 @@ import { ProcessedContent, Slide } from "../types";
 
 // Helper to initialize AI only when needed
 const getAIClient = () => {
-  const apiKey = process.env.API_KEY;
+  // Vercel only exposes variables to the browser if they start with VITE_ or REACT_APP_
+  // We check all possibilities to ensure it works in any environment
+  const apiKey = process.env.API_KEY || 
+                 process.env.VITE_API_KEY || 
+                 process.env.REACT_APP_API_KEY ||
+                 (import.meta as any).env?.VITE_API_KEY;
   
   if (!apiKey) {
-    console.error("API_KEY is missing in environment variables.");
-    throw new Error("Chave de API do Google Gemini não configurada. Por favor, adicione a variável API_KEY nas configurações do Vercel.");
+    console.error("API Key not found in environment variables (API_KEY, VITE_API_KEY, or REACT_APP_API_KEY).");
+    throw new Error("Chave de API não encontrada. No Vercel, crie uma variável chamada 'VITE_API_KEY'.");
   }
   
   return new GoogleGenAI({ apiKey });
