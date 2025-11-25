@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Luciano's Scribe</title>
+    <script>
+      // Polyfill for process.env to prevent "process is not defined" errors in browser
+      if (typeof process === 'undefined') {
+        window.process = { env: {} };
+      }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -92,18 +98,23 @@
     <div id="root"></div>
     <div id="error-boundary">
         <h1 class="text-2xl font-bold mb-2">Ops! Ocorreu um erro ao carregar.</h1>
-        <p class="text-slate-600">Se você é o administrador, verifique se a <strong>API_KEY</strong> foi configurada corretamente nas variáveis de ambiente do Vercel.</p>
+        <p class="text-slate-600">Possível erro de configuração ou chave de API ausente.</p>
         <br>
-        <code id="error-details" class="bg-slate-100 p-2 rounded text-xs block mt-2"></code>
+        <code id="error-details" class="bg-slate-100 p-2 rounded text-xs block mt-2 mx-auto max-w-lg overflow-auto"></code>
     </div>
     <script>
-        window.addEventListener('error', function(event) {
-            const root = document.getElementById('root');
-            // If root is empty after an error, show the boundary
-            if (root && root.innerHTML.trim() === '') {
+        function showError(msg) {
+             const root = document.getElementById('root');
+             if (root && root.innerHTML.trim() === '') {
                 document.getElementById('error-boundary').style.display = 'block';
-                document.getElementById('error-details').innerText = event.message || 'Erro desconhecido.';
-            }
+                document.getElementById('error-details').innerText = msg;
+             }
+        }
+        window.addEventListener('error', function(event) {
+            showError(event.message || 'Erro desconhecido.');
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            showError('Promise Rejection: ' + (event.reason ? event.reason.message || event.reason : 'Unknown'));
         });
     </script>
   </body>
