@@ -1,7 +1,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProcessedContent, Slide } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to initialize AI only when needed
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    console.error("API_KEY is missing in environment variables.");
+    throw new Error("Chave de API do Google Gemini não configurada. Por favor, adicione a variável API_KEY nas configurações do Vercel.");
+  }
+  
+  return new GoogleGenAI({ apiKey });
+};
 
 // Main Text Processing
 export const processTextEntry = async (
@@ -9,6 +19,7 @@ export const processTextEntry = async (
   body: string
 ): Promise<ProcessedContent> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Please analyze the following text entry. The body may contain HTML tags for formatting.
@@ -51,6 +62,7 @@ export const processTextEntry = async (
     return JSON.parse(text) as ProcessedContent;
   } catch (error) {
     console.error("Error processing text:", error);
+    alert("Erro ao processar texto: " + (error instanceof Error ? error.message : "Erro desconhecido"));
     throw error;
   }
 };
@@ -58,6 +70,7 @@ export const processTextEntry = async (
 // Generate Illustration
 export const generateIllustration = async (content: string): Promise<string> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Read the following text and create a short, powerful metaphor or illustration (max 100 words) that clarifies the main point.
@@ -69,13 +82,15 @@ export const generateIllustration = async (content: string): Promise<string> => 
     });
     return response.text || "Não foi possível gerar uma ilustração.";
   } catch (error) {
-    return "Erro ao gerar ilustração.";
+    console.error(error);
+    return "Erro de configuração da IA (Verifique a API Key).";
   }
 };
 
 // Bible Search
 export const searchBibleVerse = async (query: string, version: string): Promise<string> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Quote the bible verse(s) for: "${query}".
@@ -89,13 +104,15 @@ export const searchBibleVerse = async (query: string, version: string): Promise<
     });
     return response.text || "Versículo não encontrado.";
   } catch (error) {
-    return "Erro ao buscar versículo.";
+    console.error(error);
+    return "Erro ao buscar versículo. Verifique a API Key.";
   }
 };
 
 // Audio Transcription (Upload)
 export const transcribeAudioFile = async (base64Audio: string, mimeType: string): Promise<string> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: {
@@ -118,6 +135,7 @@ export const transcribeAudioFile = async (base64Audio: string, mimeType: string)
     return response.text || "Não foi possível transcrever.";
   } catch (error) {
     console.error("Transcription error", error);
+    alert("Erro na transcrição. Verifique o console ou a API Key.");
     throw error;
   }
 };
@@ -125,6 +143,7 @@ export const transcribeAudioFile = async (base64Audio: string, mimeType: string)
 // Generate Slides
 export const generateSlides = async (content: string): Promise<Slide[]> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Analyze this text and create a presentation structure. Generate 5 to 7 slides.
@@ -154,6 +173,7 @@ export const generateSlides = async (content: string): Promise<Slide[]> => {
 // Theological Dictionary
 export const getTheologicalDefinition = async (term: string, context: string): Promise<string> => {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Define the term "${term}" in a theological/biblical context. 
