@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo } from 'lucide-react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile } from '../services/geminiService';
 import { TextEntry, Collection } from '../types';
 
@@ -308,6 +309,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
               <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito" />
               <ToolbarButton onClick={() => executeCommand('italic')} icon={<Italic className="w-4 h-4"/>} title="Itálico" />
               <ToolbarButton onClick={() => executeCommand('underline')} icon={<Underline className="w-4 h-4"/>} title="Sublinhado" />
+              <ToolbarButton onClick={() => executeCommand('removeFormat')} icon={<RemoveFormatting className="w-4 h-4"/>} title="Remover Formatação (Selecionar Texto)" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
               
               <ToolbarButton onClick={() => executeCommand('justifyLeft')} icon={<AlignLeft className="w-4 h-4"/>} title="Esquerda" />
