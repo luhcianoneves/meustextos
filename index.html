@@ -66,6 +66,13 @@
         color: #e2e8f0;
         border-color: #334155;
       }
+      #error-boundary {
+        display: none;
+        padding: 40px;
+        text-align: center;
+        color: #ef4444;
+        font-family: sans-serif;
+      }
     </style>
   <script type="importmap">
 {
@@ -80,10 +87,24 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <div id="error-boundary">
+        <h1 class="text-2xl font-bold mb-2">Ops! Ocorreu um erro ao carregar.</h1>
+        <p class="text-slate-600">Se você é o administrador, verifique se a <strong>API_KEY</strong> foi configurada corretamente nas variáveis de ambiente do Vercel.</p>
+        <br>
+        <code id="error-details" class="bg-slate-100 p-2 rounded text-xs block mt-2"></code>
+    </div>
+    <script>
+        window.addEventListener('error', function(event) {
+            const root = document.getElementById('root');
+            // If root is empty after an error, show the boundary
+            if (root && root.innerHTML.trim() === '') {
+                document.getElementById('error-boundary').style.display = 'block';
+                document.getElementById('error-details').innerText = event.message || 'Erro desconhecido.';
+            }
+        });
+    </script>
+  </body>
 </html>
