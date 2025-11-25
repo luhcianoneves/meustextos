@@ -1,358 +1,355 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2 } from 'lucide-react';
-import { TextEntry, Collection, Slide } from '../types';
-import { jsPDF } from "jspdf";
-import { generateSlides, getTheologicalDefinition } from '../services/geminiService';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo } from 'lucide-react';
+import { processTextEntry, generateIllustration, transcribeAudioFile } from '../services/geminiService';
+import { TextEntry, Collection } from '../types';
 
-interface LibraryProps {
-  entries: TextEntry[];
+interface TextEditorProps {
+  onSave: (entry: TextEntry) => void;
   collections: Collection[];
-  onToggleFavorite: (id: string) => void;
 }
 
-export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [selectedCollection, setSelectedCollection] = useState('');
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) => {
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [title, setTitle] = useState('');
+  const [selectedCollection, setSelectedCollection] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isTranscribingFile, setIsTranscribingFile] = useState(false);
+  const [illustrationLoading, setIllustrationLoading] = useState(false);
+  const [previousVersions, setPreviousVersions] = useState<{timestamp: number, body: string, title: string}[]>([]);
   
-  // Slides State
-  const [showSlidesModal, setShowSlidesModal] = useState(false);
-  const [slides, setSlides] = useState<Slide[]>([]);
-  const [loadingSlides, setLoadingSlides] = useState(false);
-  
-  // Dictionary State
-  const [selectedWord, setSelectedWord] = useState('');
-  const [definition, setDefinition] = useState('');
-  const [definitionLoading, setDefinitionLoading] = useState(false);
-  const [showDefPopup, setShowDefPopup] = useState(false);
-  const [popupPos, setPopupPos] = useState({x:0, y:0});
+  const editorRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const allTags = useMemo(() => {
-    const tags = new Set<string>();
-    entries.forEach(entry => entry.tags.forEach(tag => tags.add(tag)));
-    return Array.from(tags).sort();
-  }, [entries]);
-
-  const filteredEntries = useMemo(() => {
-    return entries.filter(entry => {
-      const matchesTerm = searchTerm === '' || 
-        entry.correctedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.correctedBody.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTag = selectedTag === '' || entry.tags.includes(selectedTag);
-      const matchesCollection = selectedCollection === '' || entry.collectionId === selectedCollection;
-      const matchesFav = onlyFavorites ? entry.isFavorite : true;
-
-      return matchesTerm && matchesTag && matchesCollection && matchesFav;
-    }).sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-  }, [entries, searchTerm, selectedTag, selectedCollection, onlyFavorites]);
-
-  // Handle Text Selection for Dictionary
+  // Auto-save sketch version every 30s (simulated logic for "History")
   useEffect(() => {
-    const handleSelection = () => {
-        const selection = window.getSelection();
-        if (selection && selection.toString().trim().length > 0 && expandedId) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            setPopupPos({ x: rect.left + window.scrollX, y: rect.top + window.scrollY - 40 });
-            setSelectedWord(selection.toString());
-            // Only show button if not already showing full definition
-            if (!showDefPopup) setShowDefPopup(true);
-        } else {
-            if(!definitionLoading && !definition) setShowDefPopup(false);
+    const interval = setInterval(() => {
+        if (title && editorRef.current?.innerHTML) {
+            setPreviousVersions(prev => {
+                const newHistory = [{
+                    timestamp: Date.now(),
+                    title,
+                    body: editorRef.current?.innerHTML || ''
+                }, ...prev].slice(0, 3); // Keep only last 3
+                return newHistory;
+            });
         }
-    };
-    document.addEventListener('mouseup', handleSelection);
-    return () => document.removeEventListener('mouseup', handleSelection);
-  }, [expandedId, definitionLoading, definition, showDefPopup]);
+    }, 60000); // Every minute
+    return () => clearInterval(interval);
+  }, [title]);
 
-  const handleDefineTerm = async () => {
-      if(!selectedWord) return;
-      setDefinitionLoading(true);
-      const def = await getTheologicalDefinition(selectedWord, "Contexto bíblico/teológico geral");
-      setDefinition(def);
-      setDefinitionLoading(false);
-  };
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'pt-BR';
 
-  const closeDefinition = () => {
-      setShowDefPopup(false);
-      setDefinition('');
-      setSelectedWord('');
-  };
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + ' ';
+          }
+        }
+        if (finalTranscript && editorRef.current) {
+          document.execCommand('insertText', false, finalTranscript);
+        }
+      };
+      
+      recognitionRef.current.onend = () => {
+         if (isListening) recognitionRef.current.start();
+      };
+    }
+  }, [isListening]);
 
-  const exportToPDF = (entry: TextEntry) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const maxLineWidth = pageWidth - (margin * 2);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text(doc.splitTextToSize(entry.correctedTitle, maxLineWidth), margin, 30);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Criado em: ${new Date(entry.creationDate).toLocaleDateString('pt-BR')} | Luciano's Scribe`, margin, 40);
-
-    doc.setTextColor(0);
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = entry.correctedBody;
-    const textContent = tempDiv.innerText || "";
-    
-    doc.text(doc.splitTextToSize(textContent, maxLineWidth), margin, 55);
-    doc.save(`${entry.correctedTitle}.pdf`);
-  };
-
-  const handleShare = (entry: TextEntry) => {
-    const shareData = {
-        title: entry.correctedTitle,
-        text: entry.summary || "Confira este texto no Luciano's Scribe",
-        url: window.location.href 
-    };
-    if(confirm(`Gerar link público para "${entry.correctedTitle}"?\n(Simulação: Link copiado)`)) {
-        navigator.clipboard.writeText(`${window.location.origin}/share/${entry.id}`);
+  const toggleListening = () => {
+    if (!recognitionRef.current) return alert("Navegador não suportado.");
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+      editorRef.current?.focus();
     }
   };
 
-  const handleGenerateSlides = async (entry: TextEntry) => {
-      setLoadingSlides(true);
-      setShowSlidesModal(true);
-      
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = entry.correctedBody;
-      const text = tempDiv.innerText;
-
-      const generated = await generateSlides(text);
-      setSlides(generated);
-      setLoadingSlides(false);
-  };
-
-  const speakText = (textHTML: string) => {
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = textHTML;
-    const text = tempDiv.innerText;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
+    // Check file size (approx 20MB limit for browser stability in this demo)
+    if (file.size > 20 * 1024 * 1024) {
+        alert("O arquivo é muito grande. Por favor, use arquivos menores que 20MB.");
+        return;
+    }
+
+    setIsTranscribingFile(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+        try {
+            const base64String = (reader.result as string).split(',')[1];
+            const transcription = await transcribeAudioFile(base64String, file.type);
+            document.execCommand('insertText', false, " " + transcription + " ");
+        } catch (error) {
+            alert("Erro na transcrição do arquivo.");
+        } finally {
+            setIsTranscribingFile(false);
+            if(fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+    reader.readAsDataURL(file);
   };
 
-  const getCollectionName = (id?: string) => collections.find(c => c.id === id)?.name;
-
-  const getRelatedTexts = (currentEntry: TextEntry) => {
-      return entries.filter(e => 
-          e.id !== currentEntry.id && 
-          e.tags.some(t => currentEntry.tags.includes(t))
-      ).slice(0, 3);
+  const executeCommand = (command: string, value: string | undefined = undefined) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
   };
+
+  const insertImage = () => {
+    const url = prompt("Cole a URL da imagem:");
+    if (url) executeCommand('insertImage', url);
+  };
+
+  const insertVideo = () => {
+    const url = prompt("Cole a URL do vídeo (MP4 ou similar):");
+    if (url) {
+      const videoHtml = `<br><video controls src="${url}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"></video><br>`;
+      document.execCommand('insertHTML', false, videoHtml);
+    }
+  };
+
+  const handleGenerateIllustration = async () => {
+    const content = editorRef.current?.innerText;
+    if (!content || content.length < 50) {
+        alert("Escreva um pouco mais para gerar uma ilustração.");
+        return;
+    }
+    setIllustrationLoading(true);
+    const illus = await generateIllustration(content);
+    const html = `<br/><blockquote style="border-left: 4px solid #6366f1; padding-left: 1rem; color: #4b5563; font-style: italic; background-color: #f8fafc; padding: 10px;"><strong>💡 Ilustração Sugerida:</strong><br/>${illus}</blockquote><br/>`;
+    document.execCommand('insertHTML', false, html);
+    setIllustrationLoading(false);
+  };
+
+  const handleSave = async () => {
+    const bodyContent = editorRef.current?.innerHTML || '';
+    if (!title.trim() || !bodyContent.trim() || !date) return alert("Preencha todos os campos.");
+
+    setIsProcessing(true);
+    try {
+      const processed = await processTextEntry(title, bodyContent);
+      
+      const newEntry: TextEntry = {
+        id: crypto.randomUUID(),
+        originalTitle: title,
+        originalBody: bodyContent,
+        correctedTitle: processed.correctedTitle,
+        correctedBody: processed.correctedBody,
+        summary: processed.summary,
+        tags: processed.tags,
+        bibleCitations: processed.bibleCitations || [],
+        creationDate: date,
+        savedAt: Date.now(),
+        isFavorite: false,
+        collectionId: selectedCollection,
+        versions: previousVersions
+      };
+
+      onSave(newEntry);
+      setTitle('');
+      if (editorRef.current) editorRef.current.innerHTML = '';
+      setPreviousVersions([]);
+      alert("Texto salvo e organizado!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao processar.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const restoreVersion = (v: {title: string, body: string}) => {
+      if(confirm("Substituir o texto atual por esta versão antiga?")) {
+          setTitle(v.title);
+          if (editorRef.current) editorRef.current.innerHTML = v.body;
+      }
+  }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto relative">
-      {/* Definition Popup */}
-      {showDefPopup && selectedWord && (
-          <div 
-            className="absolute z-50 bg-white dark:bg-slate-800 shadow-xl rounded-lg border border-indigo-100 dark:border-slate-600 p-3 max-w-xs animate-in zoom-in-95 duration-200"
-            style={{ top: popupPos.y, left: popupPos.x }}
-          >
-              {!definition ? (
-                  <button onClick={handleDefineTerm} className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm hover:underline">
-                    {definitionLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <BookOpen className="w-4 h-4"/>}
-                    Definir "{selectedWord.length > 15 ? selectedWord.substring(0,12)+'...' : selectedWord}"?
-                  </button>
-              ) : (
-                  <div>
-                      <h5 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{selectedWord}</h5>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{definition}</p>
-                      <button onClick={closeDefinition} className="mt-2 text-xs text-slate-400 hover:text-slate-600 underline">Fechar</button>
-                  </div>
-              )}
-          </div>
-      )}
-
-      {/* Filters Toolbar */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 sticky top-4 z-10 transition-colors">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Biblioteca</h3>
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
-                <button onClick={() => setViewMode('card')} className={`p-2 rounded ${viewMode === 'card' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutGrid className="w-4 h-4"/></button>
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutList className="w-4 h-4"/></button>
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative md:col-span-2">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <Sparkles className="text-indigo-500 w-6 h-6" />
+            Novo Texto
+          </h2>
           
-          <select value={selectedCollection} onChange={(e) => setSelectedCollection(e.target.value)} className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 outline-none">
-             <option value="">Todos os Estudos</option>
-             {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-
-          <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 outline-none">
-              <option value="">Todas as Tags</option>
-              {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
-          </select>
-        </div>
-        
-        <div className="mt-4 flex items-center">
-            <button 
-                onClick={() => setOnlyFavorites(!onlyFavorites)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${onlyFavorites ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}
-            >
-                <Star className={`w-3 h-3 ${onlyFavorites ? 'fill-current' : ''}`} />
-                {onlyFavorites ? 'Exibindo Favoritos' : 'Filtrar Favoritos'}
-            </button>
-        </div>
-      </div>
-
-      {/* Results */}
-      <div className={`grid gap-4 ${viewMode === 'card' ? 'grid-cols-1' : 'grid-cols-1'}`}>
-        {filteredEntries.map(entry => (
-            <div key={entry.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-all hover:shadow-md">
-                <div 
-                    className="p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                >
-                    <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3"/> {new Date(entry.creationDate).toLocaleDateString('pt-BR')}
-                                </span>
-                                {entry.collectionId && (
-                                    <span className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                        <Folder className="w-3 h-3"/> {getCollectionName(entry.collectionId)}
-                                    </span>
-                                )}
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{entry.correctedTitle}</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{entry.summary || "Sem resumo disponível."}</p>
-                            
-                            <div className="flex gap-2 mt-3">
-                                {entry.tags.slice(0, 3).map(tag => (
-                                    <span key={tag} className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600">#{tag}</span>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-2 pl-4">
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onToggleFavorite(entry.id); }}
-                                className={`p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-600 ${entry.isFavorite ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}`}
-                            >
-                                <Star className={`w-5 h-5 ${entry.isFavorite ? 'fill-current' : ''}`} />
-                            </button>
-                            <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${expandedId === entry.id ? 'rotate-180' : ''}`} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Expanded Content */}
-                {expandedId === entry.id && (
-                    <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                        {/* Action Bar */}
-                        <div className="flex flex-wrap gap-2 justify-between items-center mb-6 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <div className="flex gap-3">
-                                <button onClick={() => speakText(entry.correctedBody)} className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600">
-                                    <Volume2 className="w-4 h-4"/> Ouvir
-                                </button>
-                                <button onClick={() => handleGenerateSlides(entry)} className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600">
-                                    <Presentation className="w-4 h-4"/> Gerar Slides
-                                </button>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => handleShare(entry)} className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded" title="Compartilhar Link"><Share2 className="w-4 h-4"/></button>
-                                <button onClick={() => exportToPDF(entry)} className="p-2 text-red-600 hover:bg-white rounded" title="PDF"><FileText className="w-4 h-4"/></button>
-                            </div>
-                        </div>
-
-                        {/* Body */}
-                        <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content mb-8" dangerouslySetInnerHTML={{ __html: entry.correctedBody }} />
-
-                        {/* Cross Referencing */}
-                        {getRelatedTexts(entry).length > 0 && (
-                            <div className="mb-6 bg-indigo-50 dark:bg-slate-900 border border-indigo-100 dark:border-slate-700 rounded-xl p-4">
-                                <h4 className="font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-2 mb-3 text-sm">
-                                    <LinkIcon className="w-4 h-4"/> Textos Relacionados (Cruzamento de Tags)
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {getRelatedTexts(entry).map(rel => (
-                                        <div key={rel.id} onClick={() => setExpandedId(rel.id)} className="cursor-pointer p-3 bg-white dark:bg-slate-800 rounded border border-indigo-100 dark:border-slate-700 hover:shadow-sm">
-                                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle}</p>
-                                            <p className="text-xs text-slate-500">{new Date(rel.creationDate).toLocaleDateString()} • {rel.tags.filter(t => entry.tags.includes(t)).join(', ')}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Bible Citations */}
-                        {entry.bibleCitations?.length > 0 && (
-                             <div className="bg-amber-50 dark:bg-slate-900 border border-amber-100 dark:border-slate-700 rounded-xl p-6">
-                                <h4 className="font-bold text-amber-800 dark:text-amber-500 flex items-center gap-2 mb-4"><BookMarked className="w-4 h-4"/> Referências Bíblicas</h4>
-                                <div className="grid gap-4">
-                                    {entry.bibleCitations.map((c, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-800 p-3 rounded border border-amber-100 dark:border-slate-700">
-                                            <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">{c.reference}</p>
-                                            <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{c.text}"</p>
-                                        </div>
-                                    ))}
-                                </div>
-                             </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        ))}
-        {filteredEntries.length === 0 && <div className="text-center py-20 text-slate-400">Nenhum texto encontrado.</div>}
-      </div>
-
-      {/* Slide Modal */}
-      {showSlidesModal && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-xl h-[80vh] flex flex-col">
-                  <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                      <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><Presentation className="w-5 h-5"/> Gerador de Slides (IA)</h3>
-                      <button onClick={() => setShowSlidesModal(false)} className="text-slate-400 hover:text-slate-600">Fechar</button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-6 bg-slate-100 dark:bg-slate-900">
-                      {loadingSlides ? (
-                          <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                              <Loader2 className="w-8 h-8 animate-spin mb-2"/>
-                              <p>Criando estrutura de slides...</p>
+          {/* Version History Dropdown */}
+          {previousVersions.length > 0 && (
+              <div className="relative group">
+                  <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-500">
+                      <Clock className="w-3 h-3" /> Histórico ({previousVersions.length})
+                  </button>
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 hidden group-hover:block z-10 p-2">
+                      <p className="text-xs font-bold text-slate-400 p-2">Últimos rascunhos:</p>
+                      {previousVersions.map((v, i) => (
+                          <div key={i} onClick={() => restoreVersion(v)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer rounded text-xs text-slate-700 dark:text-slate-200 flex justify-between">
+                             <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
+                             <RotateCcw className="w-3 h-3"/>
                           </div>
-                      ) : (
-                          <div className="grid gap-6">
-                              {slides.map((slide, idx) => (
-                                  <div key={idx} className="aspect-video bg-white dark:bg-slate-800 shadow-md rounded-lg p-8 flex flex-col justify-center border border-slate-200 dark:border-slate-700">
-                                      <h2 className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4">{slide.title}</h2>
-                                      <ul className="list-disc pl-6 space-y-2">
-                                          {slide.points.map((p, i) => (
-                                              <li key={i} className="text-lg text-slate-700 dark:text-slate-300">{p}</li>
-                                          ))}
-                                      </ul>
-                                      <div className="mt-auto pt-4 text-xs text-slate-400 text-right">Slide {idx + 1}</div>
-                                  </div>
-                              ))}
-                          </div>
-                      )}
+                      ))}
                   </div>
               </div>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Data
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+            
+            <div className="col-span-1">
+                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4" /> Estudo/Série
+                </label>
+                <select 
+                    value={selectedCollection}
+                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white outline-none"
+                >
+                    <option value="">Sem Série</option>
+                    {collections.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                <Type className="w-4 h-4" /> Título
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Reflexão sobre Salmos 23..."
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+              />
+            </div>
           </div>
-      )}
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <AlignLeft className="w-4 h-4" /> Conteúdo
+                </label>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleGenerateIllustration}
+                        disabled={illustrationLoading}
+                        className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                        title="Gerar metáfora/ilustração via IA"
+                    >
+                        {illustrationLoading ? <Loader2 className="w-3 h-3 animate-spin"/> : <Lightbulb className="w-3 h-3" />}
+                        Ilustração IA
+                    </button>
+                    
+                    {/* Audio Import Button */}
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isTranscribingFile}
+                        className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                        title="Importar áudio (MP3/WAV)"
+                    >
+                        {isTranscribingFile ? <Loader2 className="w-3 h-3 animate-spin"/> : <Upload className="w-3 h-3" />}
+                        Importar Áudio
+                    </button>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="audio/*"
+                        onChange={handleFileUpload}
+                    />
+
+                    <button 
+                        onClick={toggleListening}
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${isListening ? 'bg-red-100 text-red-600 animate-pulse border border-red-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                        {isListening ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
+                        {isListening ? 'Parar' : 'Ditar'}
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-50 dark:bg-slate-800">
+              <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer" />
+              <ToolbarButton onClick={() => executeCommand('redo')} icon={<Redo className="w-4 h-4"/>} title="Refazer" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'h1')} icon={<Heading1 className="w-4 h-4"/>} title="Título 1" />
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'h2')} icon={<Heading2 className="w-4 h-4"/>} title="Título 2" />
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'blockquote')} icon={<Quote className="w-4 h-4"/>} title="Citação" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
+              <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito" />
+              <ToolbarButton onClick={() => executeCommand('italic')} icon={<Italic className="w-4 h-4"/>} title="Itálico" />
+              <ToolbarButton onClick={() => executeCommand('underline')} icon={<Underline className="w-4 h-4"/>} title="Sublinhado" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              
+              <ToolbarButton onClick={() => executeCommand('justifyLeft')} icon={<AlignLeft className="w-4 h-4"/>} title="Esquerda" />
+              <ToolbarButton onClick={() => executeCommand('justifyCenter')} icon={<AlignCenter className="w-4 h-4"/>} title="Centro" />
+              <ToolbarButton onClick={() => executeCommand('justifyRight')} icon={<AlignRight className="w-4 h-4"/>} title="Direita" />
+              <ToolbarButton onClick={() => executeCommand('justifyFull')} icon={<AlignJustify className="w-4 h-4"/>} title="Justificado" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
+              <ToolbarButton onClick={() => executeCommand('insertUnorderedList')} icon={<List className="w-4 h-4"/>} title="Lista" />
+              <ToolbarButton onClick={() => executeCommand('insertOrderedList')} icon={<ListOrdered className="w-4 h-4"/>} title="Numérica" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <ToolbarButton onClick={insertImage} icon={<ImageIcon className="w-4 h-4"/>} title="Imagem" />
+              <ToolbarButton onClick={insertVideo} icon={<Video className="w-4 h-4"/>} title="Vídeo" />
+            </div>
+
+            <div
+              ref={editorRef}
+              contentEditable
+              className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-slate-950 dark:text-slate-100 overflow-y-auto"
+              data-placeholder="Comece a escrever ou importe um áudio..."
+            />
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <button
+              onClick={handleSave}
+              disabled={isProcessing}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium shadow-md transition-all transform active:scale-95 ${
+                isProcessing ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
+              {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processando...</> : <><Save className="w-5 h-5" /> Salvar</>}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+const ToolbarButton: React.FC<{ onClick: () => void; icon: React.ReactNode; title: string }> = ({ onClick, icon, title }) => (
+  <button onClick={onClick} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
+    {icon}
+  </button>
+);
