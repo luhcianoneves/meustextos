@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, FileAudio } from 'lucide-react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile } from '../services/geminiService';
 import { TextEntry, Collection } from '../types';
 
@@ -296,10 +296,26 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
             </div>
 
             <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-50 dark:bg-slate-800">
+              <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer" />
+              <ToolbarButton onClick={() => executeCommand('redo')} icon={<Redo className="w-4 h-4"/>} title="Refazer" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'h1')} icon={<Heading1 className="w-4 h-4"/>} title="Título 1" />
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'h2')} icon={<Heading2 className="w-4 h-4"/>} title="Título 2" />
+              <ToolbarButton onClick={() => executeCommand('formatBlock', 'blockquote')} icon={<Quote className="w-4 h-4"/>} title="Citação" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
               <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito" />
               <ToolbarButton onClick={() => executeCommand('italic')} icon={<Italic className="w-4 h-4"/>} title="Itálico" />
               <ToolbarButton onClick={() => executeCommand('underline')} icon={<Underline className="w-4 h-4"/>} title="Sublinhado" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              
+              <ToolbarButton onClick={() => executeCommand('justifyLeft')} icon={<AlignLeft className="w-4 h-4"/>} title="Esquerda" />
+              <ToolbarButton onClick={() => executeCommand('justifyCenter')} icon={<AlignCenter className="w-4 h-4"/>} title="Centro" />
+              <ToolbarButton onClick={() => executeCommand('justifyRight')} icon={<AlignRight className="w-4 h-4"/>} title="Direita" />
+              <ToolbarButton onClick={() => executeCommand('justifyFull')} icon={<AlignJustify className="w-4 h-4"/>} title="Justificado" />
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
               <ToolbarButton onClick={() => executeCommand('insertUnorderedList')} icon={<List className="w-4 h-4"/>} title="Lista" />
               <ToolbarButton onClick={() => executeCommand('insertOrderedList')} icon={<ListOrdered className="w-4 h-4"/>} title="Numérica" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
@@ -310,7 +326,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections }) =
             <div
               ref={editorRef}
               contentEditable
-              className="w-full px-4 py-4 min-h-[400px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed text-slate-700 dark:text-slate-300 overflow-y-auto rich-editor-content"
+              className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-slate-950 dark:text-slate-100 overflow-y-auto"
               data-placeholder="Comece a escrever ou importe um áudio..."
             />
           </div>
