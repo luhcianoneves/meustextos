@@ -25,7 +25,13 @@ const App: React.FC = () => {
   const [entryToEdit, setEntryToEdit] = useState<TextEntry | null>(null);
   
   // Settings State
-  const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>({ url: '', key: '', isEnabled: false, email: '', password: '' });
+  const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>({ 
+    url: 'https://dptncbgdrjrvxchmrqcy.supabase.co', 
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG5jYmdkcmpydnhjaG1ycWN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODk1MTUsImV4cCI6MjA5MzY2NTUxNX0.lImTZdyQ_1jWogffjj084aZxq9BTSwIE4DyI7weB3_E', 
+    isEnabled: true, 
+    email: 'luhcianoneves@gmail.com', 
+    password: '' 
+  });
 
   useEffect(() => {
     // Initial Load
@@ -38,7 +44,19 @@ const App: React.FC = () => {
             setCollections(loadedCollections);
             
             const sc = getSupabaseConfig();
-            setSupabaseConfig(sc);
+            if (!sc.url) {
+              const defaultConfig = { 
+                url: 'https://dptncbgdrjrvxchmrqcy.supabase.co', 
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG5jYmdkcmpydnhjaG1ycWN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODk1MTUsImV4cCI6MjA5MzY2NTUxNX0.lImTZdyQ_1jWogffjj084aZxq9BTSwIE4DyI7weB3_E', 
+                isEnabled: true, 
+                email: 'luhcianoneves@gmail.com', 
+                password: '' 
+              };
+              setSupabaseConfig(defaultConfig);
+              await saveSupabaseConfig(defaultConfig);
+            } else {
+              setSupabaseConfig(sc);
+            }
         } catch (e) {
             console.error("Initialization error:", e);
         } finally {
