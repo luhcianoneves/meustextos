@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, PenLine, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { getSupabaseConfig, initStorage } from '../services/storageService';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
