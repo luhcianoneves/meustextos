@@ -209,6 +209,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   'Entrar'
                 )}
               </button>
+              <button
+                type="button"
+                onClick={onLoginSuccess}
+                className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <PenLine className="w-4 h-4" />
+                Continuar sem login (modo teste)
+              </button>
             </form>
 
             <p className="text-center text-sm text-slate-500 mt-6">
