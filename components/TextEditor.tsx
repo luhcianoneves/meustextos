@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText } from 'lucide-react';
-import { processTextEntry, generateIllustration, transcribeAudioFile } from '../services/geminiService';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle } from 'lucide-react';
+import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/geminiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
 
@@ -29,6 +29,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
   const [startTime] = useState<number>(Date.now());
   const [showExportMenu, setShowExportMenu] = useState(false);
+  
+  // AI Tools
+  const [showAITools, setShowAITools] = useState(false);
+  const [aiLoading, setAiLoading] = useState('');
+  const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
+  const [selectedStyle, setSelectedStyle] = useState('formal');
+  const [selectedLanguage, setSelectedLanguage] = useState('Inglês');
   
   const editorRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -323,6 +330,74 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const getSelectedText = () => {
+    const selection = window.getSelection();
+    return selection?.toString() || editorRef.current?.innerText || '';
+  };
+
+  const handleSummarize = async () => {
+    const text = getSelectedText();
+    if (!text) return alert("Selecione ou escreva um texto primeiro.");
+    setAiLoading('Resumindo...');
+    try {
+      const summary = await summarizeSelectedText(text);
+      if (editorRef.current) {
+        document.execCommand('insertHTML', false, `<br/><div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 1rem; margin: 1rem 0;"><strong>Resumo:</strong><p>${summary}</p></div>`);
+      }
+    } catch (e) { alert("Erro ao resumir."); }
+    setAiLoading('');
+  };
+
+  const handleRewrite = async () => {
+    const text = getSelectedText();
+    if (!text) return alert("Selecione um texto primeiro.");
+    setAiLoading('Reescrevendo...');
+    try {
+      const rewritten = await rewriteInStyle(text, selectedStyle);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = rewritten;
+      }
+    } catch (e) { alert("Erro ao reescrever."); }
+    setAiLoading('');
+  };
+
+  const handleTranslate = async () => {
+    const text = getSelectedText();
+    if (!text) return alert("Selecione um texto primeiro.");
+    setAiLoading('Traduzindo...');
+    try {
+      const translated = await translateText(text, selectedLanguage);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = translated;
+      }
+    } catch (e) { alert("Erro ao traduzir."); }
+    setAiLoading('');
+  };
+
+  const handleSuggestTitles = async () => {
+    const text = getSelectedText();
+    if (!text) return alert("Escreva um texto primeiro.");
+    setAiLoading('Gerando títulos...');
+    try {
+      const titles = await suggestTitles(text);
+      setSuggestedTitles(titles);
+    } catch (e) { alert("Erro ao sugerir títulos."); }
+    setAiLoading('');
+  };
+
+  const handleCorrectGrammar = async () => {
+    const text = editorRef.current?.innerText;
+    if (!text) return alert("Escreva um texto primeiro.");
+    setAiLoading('Corrigindo...');
+    try {
+      const corrected = await correctGrammar(text);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = corrected;
+      }
+    } catch (e) { alert("Erro ao corrigir."); }
+    setAiLoading('');
+  };
+
   return (
     <div className={`max-w-4xl mx-auto space-y-6 ${focusMode ? 'fixed inset-0 z-50 bg-white p-8 overflow-y-auto' : ''}`}>
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors">
@@ -486,8 +561,72 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                         {isListening ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
                         {isListening ? 'Parar' : 'Ditar'}
                     </button>
+                    
+                    {/* AI Tools */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => setShowAITools(!showAITools)}
+                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${showAITools ? 'bg-violet-100 text-violet-700' : 'bg-violet-100 text-violet-700 hover:bg-violet-200'}`}
+                        >
+                            <AISparkle className="w-3 h-3" />
+                            IA Tools {aiLoading && <Loader2 className="w-3 h-3 animate-spin"/>}
+                        </button>
+                        {showAITools && (
+                            <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-20 p-2">
+                                <button onClick={handleCorrectGrammar} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    <CheckCircle className="w-4 h-4" /> Corrigir Gramática
+                                </button>
+                                <button onClick={handleSummarize} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    <FileText className="w-4 h-4" /> Resumir Texto
+                                </button>
+                                <button onClick={handleSuggestTitles} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    <BookOpen className="w-4 h-4" /> Sugerir Títulos
+                                </button>
+                                <div className="border-t border-slate-200 dark:border-slate-600 mt-2 pt-2">
+                                    <p className="text-xs text-slate-400 px-2 mb-1">Reescrever:</p>
+                                    <select value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full px-2 py-1 text-sm mb-1 rounded">
+                                        <option value="formal">Formal</option>
+                                        <option value="informal">Informal</option>
+                                        <option value="poético">Poético</option>
+                                        <option value="pregação">Pregação</option>
+                                        <option value="infantil">Infantil</option>
+                                    </select>
+                                    <button onClick={handleRewrite} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                        <FileEdit className="w-4 h-4" /> Aplicar Estilo
+                                    </button>
+                                </div>
+                                <div className="border-t border-slate-200 dark:border-slate-600 mt-2 pt-2">
+                                    <p className="text-xs text-slate-400 px-2 mb-1">Traduzir:</p>
+                                    <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="w-full px-2 py-1 text-sm mb-1 rounded">
+                                        <option value="Inglês">Inglês</option>
+                                        <option value="Espanhol">Espanhol</option>
+                                        <option value="Francês">Francês</option>
+                                        <option value="Alemão">Alemão</option>
+                                        <option value="Italiano">Italiano</option>
+                                    </select>
+                                    <button onClick={handleTranslate} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                        <Languages className="w-4 h-4" /> Traduzir
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
+            
+            {suggestedTitles.length > 0 && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-30 p-3">
+                    <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-bold text-slate-400">Títulos Sugeridos</p>
+                        <button onClick={() => setSuggestedTitles([])} className="text-slate-400 hover:text-slate-600">✕</button>
+                    </div>
+                    {suggestedTitles.map((t, i) => (
+                        <div key={i} onClick={() => { setTitle(t); setSuggestedTitles([]); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer rounded text-sm text-slate-700 dark:text-slate-200 mb-1">
+                            {t}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-50 dark:bg-slate-800">
               <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer" />

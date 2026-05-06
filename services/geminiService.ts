@@ -216,3 +216,107 @@ export const getTheologicalDefinition = async (term: string, context: string): P
     return "Erro ao buscar definição.";
   }
 };
+
+// Resumir texto selecionado
+export const summarizeSelectedText = async (text: string): Promise<string> => {
+  try {
+    const ai = getAIClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Resuma o seguinte texto de forma clara e concisa (máximo 3 parágrafos):
+      ${text}`,
+      config: {
+        systemInstruction: "Você é um assistente de escrita. Crie resumos claros e objetivos em português.",
+        responseMimeType: "text/plain"
+      }
+    });
+    return response.text || "Não foi possível gerar o resumo.";
+  } catch (error) {
+    console.error(error);
+    return "Erro ao resumir texto.";
+  }
+};
+
+// Reescrever em outro estilo
+export const rewriteInStyle = async (text: string, style: string): Promise<string> => {
+  try {
+    const ai = getAIClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Reescreva o seguinte texto no estilo: ${style}:
+      ${text}`,
+      config: {
+        systemInstruction: "Você é um assistente de escrita criativa. Reescreva textos mantendo o sentido original.",
+        responseMimeType: "text/plain"
+      }
+    });
+    return response.text || "Não foi possível reescrever.";
+  } catch (error) {
+    console.error(error);
+    return "Erro ao reescrever texto.";
+  }
+};
+
+// Traduzir para outros idiomas
+export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+  try {
+    const ai = getAIClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Traduza o seguinte texto para ${targetLanguage}:
+      ${text}`,
+      config: {
+        systemInstruction: "Você é um tradutor profissional. Preserve a formatação e o sentido original.",
+        responseMimeType: "text/plain"
+      }
+    });
+    return response.text || "Não foi possível traduzir.";
+  } catch (error) {
+    console.error(error);
+    return "Erro ao traduzir texto.";
+  }
+};
+
+// Sugestões de títulos
+export const suggestTitles = async (text: string): Promise<string[]> => {
+  try {
+    const ai = getAIClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Com base no seguinte texto, sugira 5 títulos criativos e atrativos:
+      ${text}`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+    const parsed = response.text;
+    return parsed ? JSON.parse(parsed) : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+// Correção gramatical
+export const correctGrammar = async (text: string): Promise<string> => {
+  try {
+    const ai = getAIClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Corrija a gramática e ortografia do seguinte texto, mantendo o sentido original:
+      ${text}`,
+      config: {
+        systemInstruction: "Você é um professor de português. Corrija erros gramaticais e ortográficos em português do Brasil.",
+        responseMimeType: "text/plain"
+      }
+    });
+    return response.text || text;
+  } catch (error) {
+    console.error(error);
+    return text;
+  }
+};
