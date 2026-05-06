@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile } from '../services/geminiService';
 import { TextEntry, Collection } from '../types';
+import { jsPDF } from 'jspdf';
 
 interface TextEditorProps {
   onSave: (entry: TextEntry) => void;
@@ -20,6 +21,15 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   const [illustrationLoading, setIllustrationLoading] = useState(false);
   const [previousVersions, setPreviousVersions] = useState<{timestamp: number, body: string, title: string}[]>([]);
   
+  // Novas funcionalidades
+  const [focusMode, setFocusMode] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
+  const [writingTime, setWritingTime] = useState(0);
+  const [autoSaveStatus, setAutoSaveStatus] = useState('');
+  const [startTime] = useState<number>(Date.now());
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  
   const editorRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +45,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
         }
         setPreviousVersions(initialEntry.versions || []);
     } else {
-        // Reset if creating new
         setTitle('');
         setDate(new Date().toISOString().split('T')[0]);
         setSelectedCollection('');
@@ -44,22 +53,67 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     }
   }, [initialEntry]);
 
-  // Auto-save sketch version every 30s (simulated logic for "History")
+  // Contador de palavras, caracteres e tempo de escrita
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    const updateCount = () => {
+      const text = editor.innerText || '';
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      setWordCount(words);
+      setCharCount(text.length);
+    };
+    
+    const interval = setInterval(updateCount, 1000);
+    editor.addEventListener('input', updateCount);
+    return () => {
+      clearInterval(interval);
+      editor.removeEventListener('input', updateCount);
+    };
+  }, []);
+
+  // Tempo de escrita
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setWritingTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [startTime]);
+
+  // Auto-save a cada 30 segundos
   useEffect(() => {
     const interval = setInterval(() => {
-        if (title && editorRef.current?.innerHTML) {
-            setPreviousVersions(prev => {
-                const newHistory = [{
-                    timestamp: Date.now(),
-                    title,
-                    body: editorRef.current?.innerHTML || ''
-                }, ...prev].slice(0, 3); // Keep only last 3
-                return newHistory;
-            });
-        }
-    }, 60000); // Every minute
+      if (title && editorRef.current?.innerHTML) {
+        setAutoSaveStatus('Salvando...');
+        localStorage.setItem('luciano-scribe-autosave', JSON.stringify({
+          title,
+          body: editorRef.current.innerHTML,
+          date,
+          collectionId: selectedCollection,
+          savedAt: Date.now()
+        }));
+        setTimeout(() => setAutoSaveStatus(''), 2000);
+      }
+    }, 30000);
     return () => clearInterval(interval);
-  }, [title]);
+  }, [title, date, selectedCollection]);
+
+  // Carregar auto-save ao iniciar
+  useEffect(() => {
+    const autosave = localStorage.getItem('luciano-scribe-autosave');
+    if (autosave && !initialEntry) {
+      const data = JSON.parse(autosave);
+      if (data.savedAt > Date.now() - 3600000) { // menos de 1 hora
+        if (confirm('Encontrou um rascunho não salvo. Deseja recuperar?')) {
+          setTitle(data.title);
+          setDate(data.date);
+          setSelectedCollection(data.collectionId || '');
+          if (editorRef.current) editorRef.current.innerHTML = data.body;
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -208,14 +262,90 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
       }
   }
 
+  // Atalhos de teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          handleSave();
+        } else if (e.key === 'b') {
+          e.preventDefault();
+          executeCommand('bold');
+        } else if (e.key === 'i') {
+          e.preventDefault();
+          executeCommand('italic');
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [title]); // Dependência title para evitar warning
+
+  // Funções de exportação
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const text = editorRef.current?.innerText || '';
+    const lines = doc.splitTextIntoLines(text, 180);
+    doc.setFontSize(16);
+    doc.text(title, 20, 20);
+    doc.setFontSize(11);
+    doc.text(lines, 20, 40);
+    doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+  };
+
+  const exportToWord = () => {
+    const text = editorRef.current?.innerHTML || '';
+    const html = `<html><body><h1>${title}</h1>${text}</body></html>`;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_')}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportToTxt = () => {
+    const text = editorRef.current?.innerText || '';
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className={`max-w-4xl mx-auto space-y-6 ${focusMode ? 'fixed inset-0 z-50 bg-white p-8 overflow-y-auto' : ''}`}>
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <Sparkles className="text-indigo-500 w-6 h-6" />
             {initialEntry ? 'Editar Texto' : 'Novo Texto'}
           </h2>
+          
+          {/* Auto-save status */}
+          {autoSaveStatus && (
+            <span className="text-xs text-emerald-600 animate-pulse">{autoSaveStatus}</span>
+          )}
+          
+          {/* Modo Focus - Botão sair */}
+          {focusMode && (
+            <button 
+                onClick={() => setFocusMode(false)}
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600"
+            >
+                <EyeOff className="w-3 h-3" /> Sair Focus
+            </button>
+          )}
           
           {/* Version History Dropdown */}
           {previousVersions.length > 0 && (
@@ -284,8 +414,43 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <AlignLeft className="w-4 h-4" /> Conteúdo
+                <span className="text-xs text-slate-400 ml-2">| {wordCount} palavras | {charCount} caracteres | {formatTime(writingTime)}</span>
                 </label>
                 <div className="flex gap-2">
+                    {/* Modo Focus */}
+                    <button 
+                        onClick={() => setFocusMode(!focusMode)}
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${focusMode ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                        title="Modo Focus (escrita sem distrações)"
+                    >
+                        {focusMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        Focus
+                    </button>
+                    
+                    {/* Export Menu */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => setShowExportMenu(!showExportMenu)}
+                            className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+                        >
+                            <Download className="w-3 h-3" />
+                            Exportar
+                        </button>
+                        {showExportMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-20">
+                                <button onClick={() => { exportToPDF(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                                    <Download className="w-4 h-4" /> PDF
+                                </button>
+                                <button onClick={() => { exportToWord(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                                    <File className="w-4 h-4" /> Word
+                                </button>
+                                <button onClick={() => { exportToTxt(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                                    <FileText className="w-4 h-4" /> TXT
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    
                     <button 
                         onClick={handleGenerateIllustration}
                         disabled={illustrationLoading}
