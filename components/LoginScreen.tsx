@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, Eye, EyeOff, PenLine, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { getSupabaseConfig, initStorage } from '../services/storageService';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
@@ -208,14 +208,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 ) : (
                   'Entrar'
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={onLoginSuccess}
-                className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
-              >
-                <PenLine className="w-4 h-4" />
-                Continuar sem login (modo teste)
               </button>
             </form>
 
