@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2, Edit } from 'lucide-react';
+import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2, Edit, ArrowUpDown, CalendarSearch, Filter, X } from 'lucide-react';
 import { TextEntry, Collection, Slide } from '../types';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
@@ -14,13 +14,20 @@ interface LibraryProps {
   onEdit: (entry: TextEntry) => void;
 }
 
+type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc' | 'favorites';
+type ViewMode = 'grid' | 'list';
+
 export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite, onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedCollection, setSelectedCollection] = useState('');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   
   // Slides State
   const [showSlidesModal, setShowSlidesModal] = useState(false);
@@ -40,18 +47,32 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
     return Array.from(tags).sort();
   }, [entries]);
 
-  const filteredEntries = useMemo(() => {
+const filteredEntries = useMemo(() => {
     return entries.filter(entry => {
       const matchesTerm = searchTerm === '' || 
         entry.correctedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.correctedBody.toLowerCase().includes(searchTerm.toLowerCase());
+        entry.correctedBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesTag = selectedTag === '' || entry.tags.includes(selectedTag);
       const matchesCollection = selectedCollection === '' || entry.collectionId === selectedCollection;
       const matchesFav = onlyFavorites ? entry.isFavorite : true;
-
-      return matchesTerm && matchesTag && matchesCollection && matchesFav;
-    }).sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-  }, [entries, searchTerm, selectedTag, selectedCollection, onlyFavorites]);
+      
+      const entryDate = new Date(entry.creationDate);
+      const matchesDateFrom = !dateFrom || entryDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || entryDate <= new Date(dateTo);
+ 
+      return matchesTerm && matchesTag && matchesCollection && matchesFav && matchesDateFrom && matchesDateTo;
+    }).sort((a, b) => {
+      switch(sortBy) {
+        case 'date-desc': return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
+        case 'date-asc': return new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime();
+        case 'title-asc': return a.correctedTitle.localeCompare(b.correctedTitle);
+        case 'title-desc': return b.correctedTitle.localeCompare(a.correctedTitle);
+        case 'favorites': return (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0);
+        default: return 0;
+      }
+    });
+  }, [entries, searchTerm, selectedTag, selectedCollection, onlyFavorites, dateFrom, dateTo, sortBy]);
 
   // Handle Text Selection for Dictionary
   useEffect(() => {
@@ -222,19 +243,43 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
       {/* Filters Toolbar */}
       <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 sticky top-4 z-10 transition-colors">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Biblioteca</h3>
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
-                <button onClick={() => setViewMode('card')} className={`p-2 rounded ${viewMode === 'card' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutGrid className="w-4 h-4"/></button>
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutList className="w-4 h-4"/></button>
+            <div className="flex items-center gap-3">
+                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Biblioteca</h3>
+                <span className="text-xs text-slate-400">({filteredEntries.length} textos)</span>
+            </div>
+            <div className="flex items-center gap-2">
+                {/* Sort Dropdown */}
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="bg-slate-100 dark:bg-slate-700 border-0 text-xs rounded-lg px-2 py-1.5 text-slate-600 dark:text-slate-300">
+                    <option value="date-desc">Mais Recentes</option>
+                    <option value="date-asc">Mais Antigos</option>
+                    <option value="title-asc">A-Z</option>
+                    <option value="title-desc">Z-A</option>
+                    <option value="favorites">Favoritos</option>
+                </select>
+                
+                {/* View Mode */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+                    <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutGrid className="w-4 h-4"/></button>
+                    <button onClick={() => setViewMode('list')} className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow-sm' : 'text-slate-400'}`}><LayoutList className="w-4 h-4"/></button>
+                </div>
+                
+                {/* Filter Toggle */}
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}
+                >
+                    <Filter className="w-3 h-3" /> Filtros
+                </button>
             </div>
         </div>
 
+        {/* Search Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative md:col-span-2">
             <Search className="h-5 w-5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
             <input
               type="text"
-              placeholder="Buscar..."
+              placeholder="Buscar títulos, conteúdo ou tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
@@ -252,19 +297,42 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
           </select>
         </div>
         
-        <div className="mt-4 flex items-center">
-            <button 
-                onClick={() => setOnlyFavorites(!onlyFavorites)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${onlyFavorites ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}
-            >
-                <Star className={`w-3 h-3 ${onlyFavorites ? 'fill-current' : ''}`} />
-                {onlyFavorites ? 'Exibindo Favoritos' : 'Filtrar Favoritos'}
-            </button>
-        </div>
+        {/* Advanced Filters */}
+        {showFilters && (
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label className="block text-xs text-slate-500 mb-1">Data Início</label>
+                    <div className="relative">
+                        <CalendarSearch className="h-4 w-4 text-slate-400 absolute left-2 top-2.5 pointer-events-none" />
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full pl-8 pr-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded" />
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs text-slate-500 mb-1">Data Fim</label>
+                    <div className="relative">
+                        <CalendarSearch className="h-4 w-4 text-slate-400 absolute left-2 top-2.5 pointer-events-none" />
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full pl-8 pr-2 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded" />
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setOnlyFavorites(!onlyFavorites)}
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${onlyFavorites ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}
+                >
+                    <Star className={`w-4 h-4 ${onlyFavorites ? 'fill-current' : ''}`} />
+                    {onlyFavorites ? 'Apenas Favoritos' : 'Favoritos'}
+                </button>
+                <button 
+                    onClick={() => { setSearchTerm(''); setSelectedTag(''); setSelectedCollection(''); setOnlyFavorites(false); setDateFrom(''); setDateTo(''); setSortBy('date-desc'); }}
+                    className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                >
+                    <X className="w-4 h-4" /> Limpar Filtros
+                </button>
+            </div>
+        )}
       </div>
 
       {/* Results */}
-      <div className={`grid gap-4 ${viewMode === 'card' ? 'grid-cols-1' : 'grid-cols-1'}`}>
+      <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
         {filteredEntries.map(entry => (
             <div key={entry.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-all hover:shadow-md">
                 <div 
