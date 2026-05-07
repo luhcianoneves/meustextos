@@ -7,7 +7,7 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
 import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
 import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
-import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette } from 'lucide-react';
+import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell } from 'lucide-react';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>(ViewState.LOGIN);
@@ -94,6 +94,29 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('accent-color', accentColor);
   }, [accentColor]);
+
+  // Register push notifications
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('Service Worker registered');
+          if (Notification.permission === 'granted') {
+            reg.pushManager.subscribe({ userVisibleOnly: true });
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        alert('Notificações ativadas!');
+      }
+    }
+  };
 
   // Backup functions
   const exportAllToJSON = () => {
@@ -339,6 +362,17 @@ const App: React.FC = () => {
 <button onClick={handleSaveSettings} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
                             <Save className="w-4 h-4" /> Salvar Alterações
                         </button>
+                        
+                        {/* Notifications */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+                                <Wifi className="w-4 h-4" /> Notificações Push
+                            </h4>
+                            <button onClick={requestNotificationPermission} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium">
+                                Ativar Notificações
+                            </button>
+                            <p className="text-xs text-slate-500 mt-2">Receba alertas quando você criar novos textos.</p>
+                        </div>
                         
                         {/* Theme Settings */}
                         <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
