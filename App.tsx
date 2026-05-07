@@ -7,7 +7,7 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
 import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
 import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
-import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2 } from 'lucide-react';
+import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette } from 'lucide-react';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>(ViewState.LOGIN);
@@ -20,6 +20,10 @@ const App: React.FC = () => {
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [isInitializing, setIsInitializing] = useState(true);
+  
+  // Theme/Color
+  const [accentColor, setAccentColor] = useState(localStorage.getItem('accent-color') || 'indigo');
+  const [isOffline, setIsOffline] = useState(false);
   
   // Edit State
   const [entryToEdit, setEntryToEdit] = useState<TextEntry | null>(null);
@@ -72,6 +76,36 @@ const App: React.FC = () => {
     if (darkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [darkMode]);
+
+  // Offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    setIsOffline(!navigator.onLine);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Save accent color
+  useEffect(() => {
+    localStorage.setItem('accent-color', accentColor);
+  }, [accentColor]);
+
+  // Backup functions
+  const exportAllToJSON = () => {
+    const data = { entries, collections, exportDate: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lucianos-scribe-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleSaveEntry = (entry: TextEntry) => {
     // 1. Update UI State immediately
@@ -182,11 +216,20 @@ const App: React.FC = () => {
             </nav>
 
             <div className="flex items-center gap-2">
+                {/* Offline indicator */}
+                {isOffline && (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">
+                        <WifiOff className="w-3 h-3" /> Offline
+                    </div>
+                )}
                 <button onClick={() => setShowBible(!showBible)} className={`p-2 rounded-lg transition-colors ${showBible ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`} title="Abrir Bíblia">
                     <Book className="w-5 h-5" />
                 </button>
                 <button onClick={() => setShowCollectionModal(true)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Nova Série">
                     <FolderPlus className="w-5 h-5" />
+                </button>
+                <button onClick={exportAllToJSON} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Backup">
+                    <HardDriveDownload className="w-5 h-5" />
                 </button>
                 <button onClick={() => setDarkMode(!darkMode)} className="p-2 text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                     {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -293,13 +336,31 @@ const App: React.FC = () => {
                           </div>
                       </div>
                       
-                      <button onClick={handleSaveSettings} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
-                          <Save className="w-4 h-4" /> Salvar Alterações
-                      </button>
-                  </div>
-              </div>
-          </div>
-      )}
+<button onClick={handleSaveSettings} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
+                            <Save className="w-4 h-4" /> Salvar Alterações
+                        </button>
+                        
+                        {/* Theme Settings */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+                                <Palette className="w-4 h-4" /> Tema e Cores
+                            </h4>
+                            <div className="flex gap-2 flex-wrap">
+                                {['indigo', 'violet', 'blue', 'emerald', 'rose', 'orange'].map(color => (
+                                    <button
+                                        key={color}
+                                        onClick={() => setAccentColor(color)}
+                                        className={`w-8 h-8 rounded-full bg-${color}-500 ${accentColor === color ? 'ring-2 ring-offset-2 ring-' + color + '-500' : ''}`}
+                                        title={color.charAt(0).toUpperCase() + color.slice(1)}
+                                    />
+                                ))}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">Cor de destaque: {accentColor}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };
