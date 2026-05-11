@@ -168,8 +168,8 @@ ${text}`;
         versions: []
       };
 
-      const existing = JSON.parse(localStorage.getItem('texts') || '[]');
-      localStorage.setItem('texts', JSON.stringify([entry, ...existing]));
+      const existing = JSON.parse(localStorage.getItem('luciano-scribe-texts') || '[]');
+      localStorage.setItem('luciano-scribe-texts', JSON.stringify([entry, ...existing]));
       saved++;
     }
 
