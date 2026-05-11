@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2 } from 'lucide-react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2, Scissors, Type as FontIcon, Square } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/aiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
@@ -22,14 +22,16 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   const [illustrationLoading, setIllustrationLoading] = useState(false);
   const [previousVersions, setPreviousVersions] = useState<{timestamp: number, body: string, title: string}[]>([]);
   
-  // Novas funcionalidades
+  // Editor State
   const [focusMode, setFocusMode] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
-  const [writingTime, setWritingTime] = useState(0);
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
-  const [startTime] = useState<number>(Date.now());
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [selectedFont, setSelectedFont] = useState('Georgia, serif');
+  const [selectedFontSize, setSelectedFontSize] = useState('18');
+  const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   
   // AI Tools
   const [showAITools, setShowAITools] = useState(false);
@@ -41,6 +43,20 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   const editorRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fonts = [
+    'Georgia, serif',
+    'Arial, sans-serif',
+    'Times New Roman, serif',
+    'Courier New, monospace',
+    'Verdana, sans-serif',
+    'Trebuchet MS, sans-serif',
+    'Palatino Linotype, serif',
+    'Impact, sans-serif',
+    'Comic Sans MS, cursive'
+  ];
+
+  const fontSizes = ['12', '14', '16', '18', '20', '24', '28', '32', '36', '48', '64'];
 
   // Load Initial Data if editing
   useEffect(() => {
@@ -61,7 +77,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     }
   }, [initialEntry]);
 
-  // Contador de palavras, caracteres e tempo de escrita
+  // Contador de palavras e caracteres
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -80,14 +96,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
       editor.removeEventListener('input', updateCount);
     };
   }, []);
-
-  // Tempo de escrita
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setWritingTime(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [startTime]);
 
   // Auto-save a cada 30 segundos
   useEffect(() => {
@@ -255,6 +263,48 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     }
   };
 
+  const cleanPastedText = () => {
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      if (selection && selection.toString()) {
+        const selectedText = selection.toString();
+        const cleanText = selectedText
+          .replace(/<[^>]*>/g, '')
+          .replace(/style="[^"]*"/g, '')
+          .replace(/class="[^"]*"/g, '')
+          .replace(/font-family:[^;]*;/g, '')
+          .replace(/font-size:[^;]*;/g, '')
+          .replace(/color:[^;]*;/g, '')
+          .replace(/background-color:[^;]*;/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        executeCommand('insertText', cleanText);
+      } else {
+        alert('Selecione o texto que deseja limpar');
+      }
+    }
+  };
+
+  const cleanAllFormatting = () => {
+    if (editorRef.current) {
+      const text = editorRef.current.innerText;
+      editorRef.current.innerHTML = '';
+      executeCommand('insertText', text);
+    }
+  };
+
+  const setFont = (font: string) => {
+    setSelectedFont(font);
+    executeCommand('fontName', font);
+    setShowFontDropdown(false);
+  };
+
+  const setFontSize = (size: string) => {
+    setSelectedFontSize(size);
+    executeCommand('fontSize', String(Math.floor(parseInt(size) / 4)));
+    setShowFontSizeDropdown(false);
+  };
+
   const insertTemplate = (type: string) => {
     let html = '';
     switch(type) {
@@ -396,11 +446,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     URL.revokeObjectURL(url);
   };
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+
 
   const getSelectedText = () => {
     const selection = window.getSelection();
@@ -561,7 +607,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <AlignLeft className="w-4 h-4" /> Conteúdo
-                <span className="text-xs text-slate-400 ml-2">| {wordCount} palavras | {charCount} caracteres | {formatTime(writingTime)}</span>
+                <span className="text-xs text-slate-400 ml-2">| {wordCount} palavras | {charCount} caracteres</span>
                 </label>
                 <div className="flex gap-2">
                     {/* Modo Focus */}
@@ -718,66 +764,130 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-50 dark:bg-slate-800">
-              <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer (Ctrl+Z)" />
-              <ToolbarButton onClick={() => executeCommand('redo')} icon={<Redo className="w-4 h-4"/>} title="Refazer (Ctrl+Y)" />
+            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-100 dark:bg-slate-800">
+              {/* Undo/Redo */}
+              <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer" />
+              <ToolbarButton onClick={() => executeCommand('redo')} icon={<Redo className="w-4 h-4"/>} title="Refazer" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
-              
+
+              {/* Font Selection */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowFontDropdown(!showFontDropdown)}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
+                  style={{fontFamily: selectedFont}}
+                >
+                  <FontIcon className="w-3 h-3" /> {selectedFont.split(',')[0]} ▼
+                </button>
+                {showFontDropdown && (
+                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-200 dark:border-slate-600 w-48 max-h-60 overflow-y-auto">
+                    {fonts.map(font => (
+                      <button 
+                        key={font} 
+                        onClick={() => setFont(font)}
+                        style={{fontFamily: font}}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600"
+                      >
+                        {font.split(',')[0]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Font Size */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
+                >
+                  <Type className="w-3 h-3" /> {selectedFontSize}px ▼
+                </button>
+                {showFontSizeDropdown && (
+                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-200 dark:border-slate-600 w-20">
+                    {fontSizes.map(size => (
+                      <button 
+                        key={size} 
+                        onClick={() => setFontSize(size)}
+                        className="w-full px-3 py-2 text-center text-sm hover:bg-slate-100 dark:hover:bg-slate-600"
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
+              {/* Headings */}
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h1')} icon={<Heading1 className="w-4 h-4"/>} title="Título 1" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h2')} icon={<Heading2 className="w-4 h-4"/>} title="Título 2" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h3')} icon={<Heading3 className="w-4 h-4"/>} title="Título 3" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'blockquote')} icon={<Quote className="w-4 h-4"/>} title="Citação" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
 
-              <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito (Ctrl+B)" />
-              <ToolbarButton onClick={() => executeCommand('italic')} icon={<Italic className="w-4 h-4"/>} title="Itálico (Ctrl+I)" />
-              <ToolbarButton onClick={() => executeCommand('underline')} icon={<Underline className="w-4 h-4"/>} title="Sublinhado (Ctrl+U)" />
+              {/* Text Formatting */}
+              <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito" />
+              <ToolbarButton onClick={() => executeCommand('italic')} icon={<Italic className="w-4 h-4"/>} title="Itálico" />
+              <ToolbarButton onClick={() => executeCommand('underline')} icon={<Underline className="w-4 h-4"/>} title="Sublinhado" />
               <ToolbarButton onClick={() => executeCommand('strikethrough')} icon={<Strikethrough className="w-4 h-4"/>} title="Tachado" />
               <ToolbarButton onClick={() => executeCommand('superscript')} icon={<Superscript className="w-4 h-4"/>} title="Sobrescrito" />
               <ToolbarButton onClick={() => executeCommand('subscript')} icon={<Subscript className="w-4 h-4"/>} title="Subscrito" />
-              <ToolbarButton onClick={() => executeCommand('removeFormat')} icon={<RemoveFormatting className="w-4 h-4"/>} title="Limpar Formatação" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
               
+              {/* Alignment */}
               <ToolbarButton onClick={() => executeCommand('justifyLeft')} icon={<AlignLeft className="w-4 h-4"/>} title="Esquerda" />
               <ToolbarButton onClick={() => executeCommand('justifyCenter')} icon={<AlignCenter className="w-4 h-4"/>} title="Centro" />
               <ToolbarButton onClick={() => executeCommand('justifyRight')} icon={<AlignRight className="w-4 h-4"/>} title="Direita" />
               <ToolbarButton onClick={() => executeCommand('justifyFull')} icon={<AlignJustify className="w-4 h-4"/>} title="Justificado" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
 
+              {/* Lists */}
               <ToolbarButton onClick={() => executeCommand('insertUnorderedList')} icon={<List className="w-4 h-4"/>} title="Lista" />
               <ToolbarButton onClick={() => executeCommand('insertOrderedList')} icon={<ListOrdered className="w-4 h-4"/>} title="Lista Numerada" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
-              
-              <ToolbarButton onClick={insertImage} icon={<ImageIcon className="w-4 h-4"/>} title="Inserir Imagem" />
-              <ToolbarButton onClick={insertVideo} icon={<Video className="w-4 h-4"/>} title="Inserir Vídeo" />
-              <ToolbarButton onClick={insertLink} icon={<Link className="w-4 h-4"/>} title="Inserir Link" />
+
+              {/* Media & Links */}
+              <ToolbarButton onClick={insertImage} icon={<ImageIcon className="w-4 h-4"/>} title="Imagem" />
+              <ToolbarButton onClick={insertVideo} icon={<Video className="w-4 h-4"/>} title="Vídeo" />
+              <ToolbarButton onClick={insertLink} icon={<Link className="w-4 h-4"/>} title="Link" />
               <ToolbarButton onClick={insertHR} icon={<Minus className="w-4 h-4"/>} title="Linha Horizontal" />
               <ToolbarButton onClick={insertTable} icon={<Palette className="w-4 h-4"/>} title="Tabela" />
               <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
 
-              {/* Color picker */}
+              {/* Colors */}
               <div className="relative group">
-                <ToolbarButton onClick={() => {}} icon={<Palette className="w-4 h-4"/>} title="Cor do Texto" />
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-32">
-                  {['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'].map(c => (
-                    <button key={c} onClick={() => setTextColor(c)} className="w-6 h-6 rounded border border-slate-200" style={{backgroundColor: c}} />
+                <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors" title="Cor do Texto">
+                  <TypeIcon className="w-4 h-4" style={{color: '#ef4444'}} />
+                </button>
+                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
+                  <p className="w-full text-xs text-slate-400 mb-1">Cor do Texto:</p>
+                  {['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'].map(c => (
+                    <button key={c} onClick={() => setTextColor(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
 
-              {/* Highlight picker */}
               <div className="relative group">
-                <ToolbarButton onClick={() => {}} icon={<TypeIcon className="w-4 h-4"/>} title="Destacar Texto" />
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-32">
-                  {['#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#f5d0fe', '#ffffff'].map(c => (
-                    <button key={c} onClick={() => setHighlight(c)} className="w-6 h-6 rounded border border-slate-300" style={{backgroundColor: c}} />
+                <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors" title="Cor de Fundo">
+                  <Square className="w-4 h-4" style={{color: '#fef08a'}} />
+                </button>
+                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
+                  <p className="w-full text-xs text-slate-400 mb-1">Fundo:</p>
+                  {['#ffffff', '#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#f5d0fe', '#f0fdf4', '#fef2f2'].map(c => (
+                    <button key={c} onClick={() => setHighlight(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
+              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+
+              {/* Clean Formatting */}
+              <ToolbarButton onClick={cleanPastedText} icon={<Scissors className="w-4 h-4"/>} title="Limpar Formatação do Texto Selecionado" />
+              <ToolbarButton onClick={cleanAllFormatting} icon={<RemoveFormatting className="w-4 h-4"/>} title="Remover Toda Formatação" />
             </div>
 
             {/* Quick Templates Bar */}
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-t-0 bg-slate-50 dark:bg-slate-800 rounded-b-lg">
+            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-t-0 bg-slate-100 dark:bg-slate-800 rounded-b-lg">
               <span className="text-xs text-slate-400 mr-2">Modelos:</span>
               <button onClick={() => insertTemplate('versiculo')} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
               <button onClick={() => insertTemplate('destaque')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
@@ -785,6 +895,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               <button onClick={() => insertTemplate('passo')} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
               <button onClick={() => insertTemplate('comparacao')} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
               <button onClick={insertEmoji} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
+              <div className="w-px h-4 bg-slate-300 mx-2"></div>
+              <span className="text-xs text-slate-400 mr-1">Limpar:</span>
+              <button onClick={cleanPastedText} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
+              <button onClick={cleanAllFormatting} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
             </div>
 
             <div
