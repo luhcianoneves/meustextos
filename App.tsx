@@ -8,7 +8,7 @@ import { BibleSidebar } from './components/BibleSidebar';
 import { ImportTexts } from './components/ImportTexts';
 import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
 import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
-import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell, Upload } from 'lucide-react';
+import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell, Upload, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>(ViewState.LOGIN);
