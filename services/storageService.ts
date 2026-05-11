@@ -49,7 +49,7 @@ export const saveSupabaseConfig = async (config: SupabaseConfig) => {
 
 export const getSupabaseConfig = (): SupabaseConfig => {
   const s = localStorage.getItem(STORAGE_KEY_CONFIG);
-  return s ? JSON.parse(s) : { url: '', key: '', isEnabled: false, geminiApiKey: '', openrouterApiKey: '', openrouterModel: 'anthropic/claude-3.5-sonnet' };
+  return s ? JSON.parse(s) : { url: '', key: '', isEnabled: false, geminiApiKey: '', openrouterApiKey: '', openrouterModel: '' };
 };
 
 // --- SINGLE ENTRY OPERATIONS (Efficient Sync) ---

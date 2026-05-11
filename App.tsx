@@ -38,7 +38,7 @@ const App: React.FC = () => {
     password: '',
     geminiApiKey: 'AIzaSyDDiqW_bT1m2c8hVJyVzG2-kGy7JZh4wIw',
     openrouterApiKey: '',
-    openrouterModel: 'anthropic/claude-3.5-sonnet'
+    openrouterModel: ''
   });
 
   useEffect(() => {
@@ -384,20 +384,47 @@ const App: React.FC = () => {
                                      onChange={(e) => setSupabaseConfig({...supabaseConfig, openrouterApiKey: e.target.value})}
                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
                                    />
-                                   <select
-                                     value={supabaseConfig.openrouterModel || 'anthropic/claude-3.5-sonnet'}
+                                   <input
+                                     type="text"
+                                     placeholder="inclusionai/ring-2.6-1t:free"
+                                     value={supabaseConfig.openrouterModel || ''}
                                      onChange={(e) => setSupabaseConfig({...supabaseConfig, openrouterModel: e.target.value})}
                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                   />
+                                   <p className="text-xs text-slate-400 mt-1 mb-2">Código do modelo (ex: anthropic/claude-3.5-sonnet)</p>
+                                   <button 
+                                     onClick={async () => {
+                                       if (!supabaseConfig.openrouterApiKey || !supabaseConfig.openrouterModel) {
+                                         alert('Preencha API Key e Modelo primeiro.');
+                                         return;
+                                       }
+                                       try {
+                                         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                                           method: 'POST',
+                                           headers: {
+                                             'Content-Type': 'application/json',
+                                             'Authorization': `Bearer ${supabaseConfig.openrouterApiKey}`
+                                           },
+                                           body: JSON.stringify({
+                                             model: supabaseConfig.openrouterModel,
+                                             messages: [{ role: 'user', content: 'Olá!' }],
+                                             max_tokens: 10
+                                           })
+                                         });
+                                         if (res.ok) {
+                                           alert('✅ Modelo funcionando corretamente!');
+                                         } else {
+                                           const err = await res.json();
+                                           alert('❌ Erro: ' + (err.error?.message || res.statusText));
+                                         }
+                                       } catch (e: any) {
+                                         alert('❌ Erro: ' + e.message);
+                                       }
+                                     }}
+                                     className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium flex justify-center items-center gap-2"
                                    >
-                                     <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
-                                     <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
-                                     <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
-                                     <option value="openai/gpt-4o">GPT-4o</option>
-                                     <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
-                                     <option value="google/gemini-pro-1.5">Gemini Pro 1.5</option>
-                                     <option value="mistralai/mistral-nemo">Mistral Nemo</option>
-                                     <option value="meta-llama/llama-3-8b-instruct">Llama 3 8B</option>
-                                   </select>
+                                     <Sparkles className="w-4 h-4" /> Validar OpenRouter
+                                   </button>
                                </div>
                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API Gemini (IA)</h4>
