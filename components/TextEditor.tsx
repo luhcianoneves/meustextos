@@ -4,6 +4,7 @@ import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignR
 import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/geminiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
+import { AIAgent } from './AIAgent';
 
 interface TextEditorProps {
   onSave: (entry: TextEntry) => void;
@@ -677,6 +678,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             </button>
           </div>
         </div>
+
+        <AIAgent 
+          editorContent={editorRef.current?.innerText || ''}
+          onSuggestionApply={(suggestion) => {
+            try {
+              const s = JSON.parse(suggestion);
+              if (s.type === 'tags') handleSuggestTitles();
+              if (s.type === 'summary') handleSummarize();
+            } catch (e) {}
+          }}
+        />
       </div>
     </div>
   );

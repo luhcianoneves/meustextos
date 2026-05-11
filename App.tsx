@@ -249,15 +249,15 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950">
       {/* Glassmorphism Header */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-white/20 dark:border-slate-700/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <div className={`${accentBg} p-2 rounded-xl shadow-lg shadow-${accent}-500/20`}>
-                    <Book className="w-5 h-5 text-white" />
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 h-auto sm:h-16 py-2 sm:py-0 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`${accentBg} p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg shadow-${accent}-500/20`}>
+                    <Book className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent hidden sm:block">Luciano's Scribe</h1>
+                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent hidden xs:block sm:block">Luciano's Scribe</h1>
             </div>
 
-            <nav className="flex items-center gap-1 p-1 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+            <nav className="flex items-center gap-1 p-1 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 order-3 sm:order-2">
                 {[
                     { id: ViewState.EDITOR, icon: PenTool, label: 'Escrever' },
                     { id: ViewState.LIBRARY, icon: Book, label: 'Biblioteca' },
@@ -278,7 +278,7 @@ const App: React.FC = () => {
                 ))}
             </nav>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 order-2 sm:order-3">
                 {/* Offline indicator */}
                 {isOffline && (
                     <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
@@ -286,26 +286,26 @@ const App: React.FC = () => {
                     </div>
                 )}
                 <div className="flex items-center gap-0.5 p-1 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
-                    <button onClick={() => setShowBible(!showBible)} className={`p-2 rounded-md transition-all duration-200 active:scale-90 ${showBible ? `${accentLight} dark:${accentDarkBg} ${accentText} dark:${accentDarkText}` : 'text-slate-400 hover:bg-white dark:hover:bg-slate-700'}`} title="Abrir Bíblia">
-                        <Book className="w-5 h-5" />
+                    <button onClick={() => setShowBible(!showBible)} className={`p-1.5 sm:p-2 rounded-md transition-all duration-200 active:scale-90 ${showBible ? `${accentLight} dark:${accentDarkBg} ${accentText} dark:${accentDarkText}` : 'text-slate-400 hover:bg-white dark:hover:bg-slate-700'}`} title="Abrir Bíblia">
+                        <Book className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
-                    <button onClick={() => setShowCollectionModal(true)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90" title="Nova Série">
-                        <FolderPlus className="w-5 h-5" />
+                    <div className="w-px h-4 sm:h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5 hidden xs:inline"></div>
+                    <button onClick={() => setShowCollectionModal(true)} className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90 hidden xs:inline" title="Nova Série">
+                        <FolderPlus className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <button onClick={exportAllToJSON} className="p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90" title="Backup">
-                        <HardDriveDownload className="w-5 h-5" />
+                    <button onClick={exportAllToJSON} className="p-1.5 sm:p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90 hidden xs:inline" title="Backup">
+                        <HardDriveDownload className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
-                    <button onClick={() => setDarkMode(!darkMode)} className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
-                        {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    <div className="w-px h-4 sm:h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5 hidden xs:inline"></div>
+                    <button onClick={() => setDarkMode(!darkMode)} className="p-1.5 sm:p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </button>
-                    <button onClick={() => setShowSettings(true)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
-                        <Settings className="w-5 h-5" />
+                    <button onClick={() => setShowSettings(true)} className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
-                    <button onClick={() => setViewState(ViewState.LOGIN)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
-                        <LogOut className="w-5 h-5" />
+                    <div className="w-px h-4 sm:h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5 hidden xs:inline"></div>
+                    <button onClick={() => setViewState(ViewState.LOGIN)} className="p-1.5 sm:p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
             </div>
@@ -324,7 +324,7 @@ const App: React.FC = () => {
         </main>
 
         {/* Bible Sidebar - Layout Push */}
-        <aside className={`${showBible ? 'w-80 translate-x-0' : 'w-0 -translate-x-full'} transition-all duration-300 ease-out border-l border-slate-200/50 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl fixed right-0 top-16 bottom-0 z-20 shadow-2xl lg:relative lg:top-0 lg:shadow-none lg:translate-x-0 lg:w-0`}>
+        <aside className={`${showBible ? 'w-full sm:w-80 translate-x-0' : 'w-0 -translate-x-full'} transition-all duration-300 ease-out border-l border-slate-200/50 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl fixed right-0 top-14 sm:top-16 bottom-0 z-30 sm:z-20 shadow-2xl lg:relative lg:top-0 lg:shadow-none lg:translate-x-0 lg:w-0`}>
             <BibleSidebar />
         </aside>
       </div>
