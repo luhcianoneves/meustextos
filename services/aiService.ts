@@ -154,6 +154,9 @@ const createOpenRouterProvider = (apiKey: string, model: string): AIProvider => 
       body: JSON.stringify({ model, messages, ...config })
     });
     const data = await res.json();
+    if (data.error) {
+      throw new Error(data.error.message || 'Erro na API');
+    }
     return data;
   };
 
@@ -167,12 +170,23 @@ const createOpenRouterProvider = (apiKey: string, model: string): AIProvider => 
 
   return {
     processTextEntry: async (title, body) => {
-      const response = await chat(
-        'Você é assistente do Luciano\'s Scribe. Organize textos, corrija gramática em português, identifique citações bíblicas.',
-        `Analise: Título: ${title}. Corpo: ${body}. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}`,
-        { response_format: { type: 'json_object' } }
-      );
-      return JSON.parse(response);
+      try {
+        const response = await chat(
+          'Você é assistente do Luciano\'s Scribe. Organize textos, corrija gramática em português, identifique citações bíblicas.',
+          `Analise: Título: ${title}. Corpo: ${body}. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}`,
+          { response_format: { type: 'json_object' } }
+        );
+        return JSON.parse(response);
+      } catch (e) {
+        console.error("processTextEntry error:", e);
+        return {
+          correctedTitle: title,
+          correctedBody: body,
+          summary: body.substring(0, 100) + '...',
+          tags: [],
+          bibleCitations: []
+        };
+      }
     },
 
     generateIllustration: async (content) => {
@@ -188,12 +202,16 @@ const createOpenRouterProvider = (apiKey: string, model: string): AIProvider => 
     },
 
     generateSlides: async (content) => {
-      const response = await chat(
-        'Você é criador de apresentações.',
-        `Crie 5-7 slides para: ${content}. Retorne JSON: [{title, points: []}]`,
-        { response_format: { type: 'json_object' } }
-      );
-      return JSON.parse(response);
+      try {
+        const response = await chat(
+          'Você é criador de apresentações.',
+          `Crie 5-7 slides para: ${content}. Retorne JSON: [{title, points: []}]`,
+          { response_format: { type: 'json_object' } }
+        );
+        return JSON.parse(response);
+      } catch (e) {
+        return [];
+      }
     },
 
     getTheologicalDefinition: async (term, context) => {
@@ -213,8 +231,13 @@ const createOpenRouterProvider = (apiKey: string, model: string): AIProvider => 
     },
 
     suggestTitles: async (text) => {
-      const response = await chat('Você é copywriter.', `Sugira 5 títulos criativos para: ${text}`, { response_format: { type: 'json_object' } });
-      return JSON.parse(response);
+      try {
+        const response = await chat('Você é copywriter.', `Sugira 5 títulos criativos para: ${text}`, { response_format: { type: 'json_object' } });
+        const parsed = JSON.parse(response);
+        return Array.isArray(parsed) ? parsed : (parsed.titles || []);
+      } catch (e) {
+        return [];
+      }
     },
 
     correctGrammar: async (text) => {

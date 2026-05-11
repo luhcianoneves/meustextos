@@ -329,10 +329,12 @@ const App: React.FC = () => {
             </div>
         </main>
 
-        {/* Bible Sidebar - Layout Push */}
-        <aside className={`${showBible ? 'w-full sm:w-80 translate-x-0' : 'w-0 -translate-x-full'} transition-all duration-300 ease-out border-l border-slate-200/50 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl fixed right-0 top-14 sm:top-16 bottom-0 z-30 sm:z-20 shadow-2xl lg:relative lg:top-0 lg:shadow-none lg:translate-x-0 lg:w-0`}>
+        {/* Bible Sidebar - Fixed Overlay */}
+        {showBible && (
+          <aside className="fixed sm:relative right-0 top-14 sm:top-16 bottom-0 w-full sm:w-80 z-40 sm:z-auto bg-white sm:bg-transparent border-l border-slate-200 dark:border-slate-700 shadow-2xl sm:shadow-none">
             <BibleSidebar />
-        </aside>
+          </aside>
+        )}
       </div>
 
       {/* New Collection Modal */}
