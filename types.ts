@@ -57,7 +57,8 @@ export enum ViewState {
   LOGIN = 'LOGIN',
   EDITOR = 'EDITOR',
   LIBRARY = 'LIBRARY',
-  STATS = 'STATS'
+  STATS = 'STATS',
+  IMPORT = 'IMPORT'
 }
 
 export interface SupabaseConfig {

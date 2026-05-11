@@ -5,9 +5,10 @@ import { TextEditor } from './components/TextEditor';
 import { Library } from './components/Library';
 import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
+import { ImportTexts } from './components/ImportTexts';
 import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
 import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
-import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell } from 'lucide-react';
+import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell, Upload } from 'lucide-react';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>(ViewState.LOGIN);
@@ -261,6 +262,7 @@ const App: React.FC = () => {
                 {[
                     { id: ViewState.EDITOR, icon: PenTool, label: 'Escrever' },
                     { id: ViewState.LIBRARY, icon: Book, label: 'Biblioteca' },
+                    { id: ViewState.IMPORT, icon: Upload, label: 'Importar' },
                     { id: ViewState.STATS, icon: BarChart2, label: 'Estatísticas' }
                 ].map(tab => (
                     <button
@@ -320,6 +322,7 @@ const App: React.FC = () => {
                 {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} initialEntry={entryToEdit} />}
                 {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} onEdit={handleEditEntry} accentColor={accentColor} />}
                 {viewState === ViewState.STATS && <StatsDashboard entries={entries} />}
+                {viewState === ViewState.IMPORT && <ImportTexts onImportComplete={(count) => { alert(`${count} textos importados com sucesso!`); setViewState(ViewState.LIBRARY); }} />}
             </div>
         </main>
 
