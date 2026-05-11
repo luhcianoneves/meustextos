@@ -205,19 +205,59 @@ const App: React.FC = () => {
 
   if (viewState === ViewState.LOGIN) return <LoginScreen onLoginSuccess={() => setViewState(ViewState.EDITOR)} />;
 
+  const accentColorMap: Record<string, string> = {
+    indigo: 'indigo',
+    violet: 'violet',
+    blue: 'blue',
+    emerald: 'emerald',
+    rose: 'rose',
+    orange: 'orange'
+  };
+  const accent = accentColorMap[accentColor] || 'indigo';
+  const accentBg = `bg-${accent}-600`;
+  const accentHover = `hover:bg-${accent}-700`;
+  const accentText = `text-${accent}-600`;
+  const accentRing = `ring-${accent}-500`;
+  const accentLight = `bg-${accent}-100`;
+  const accentDarkBg = `bg-${accent}-900`;
+  const accentDarkText = `text-${accent}-300`;
+
+  const getAccentClasses = (dark = false) => {
+    if (dark) {
+      return {
+        bg: `bg-${accent}-600`,
+        hover: `hover:bg-${accent}-700`,
+        text: `text-${accent}-400`,
+        light: `bg-${accent}-900/50`,
+        ring: `ring-${accent}-500`,
+        border: `border-${accent}-500`
+      };
+    }
+    return {
+      bg: `bg-${accent}-600`,
+      hover: `hover:bg-${accent}-700`,
+      text: `text-${accent}-600`,
+      light: `bg-${accent}-100`,
+      ring: `ring-${accent}-500`,
+      border: `border-${accent}-500`
+    };
+  };
+
+  const accentClasses = getAccentClasses();
+
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-200 bg-slate-50 dark:bg-slate-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950">
+      {/* Glassmorphism Header */}
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-white/20 dark:border-slate-700/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <div className="bg-indigo-600 p-1.5 rounded-lg">
+            <div className="flex items-center gap-3">
+                <div className={`${accentBg} p-2 rounded-xl shadow-lg shadow-${accent}-500/20`}>
                     <Book className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-lg font-bold text-slate-800 dark:text-white hidden sm:block">Luciano's Scribe</h1>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent hidden sm:block">Luciano's Scribe</h1>
             </div>
 
-            <nav className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            <nav className="flex items-center gap-1 p-1 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
                 {[
                     { id: ViewState.EDITOR, icon: PenTool, label: 'Escrever' },
                     { id: ViewState.LIBRARY, icon: Book, label: 'Biblioteca' },
@@ -226,10 +266,10 @@ const App: React.FC = () => {
                     <button
                         key={tab.id}
                         onClick={() => handleNavClick(tab.id as ViewState)}
-                        className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                        className={`flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-95 ${
                             viewState === tab.id 
-                            ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' 
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            ? `bg-white dark:bg-slate-700 ${accentText} dark:${accentDarkText} shadow-md shadow-${accent}-500/10` 
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                         }`}
                     >
                         <tab.icon className="w-4 h-4 sm:mr-2" />
@@ -238,46 +278,53 @@ const App: React.FC = () => {
                 ))}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
                 {/* Offline indicator */}
                 {isOffline && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
                         <WifiOff className="w-3 h-3" /> Offline
                     </div>
                 )}
-                <button onClick={() => setShowBible(!showBible)} className={`p-2 rounded-lg transition-colors ${showBible ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`} title="Abrir Bíblia">
-                    <Book className="w-5 h-5" />
-                </button>
-                <button onClick={() => setShowCollectionModal(true)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Nova Série">
-                    <FolderPlus className="w-5 h-5" />
-                </button>
-                <button onClick={exportAllToJSON} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Backup">
-                    <HardDriveDownload className="w-5 h-5" />
-                </button>
-                <button onClick={() => setDarkMode(!darkMode)} className="p-2 text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                    {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button>
-                <button onClick={() => setShowSettings(true)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                    <Settings className="w-5 h-5" />
-                </button>
-                <button onClick={() => setViewState(ViewState.LOGIN)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                    <LogOut className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-0.5 p-1 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+                    <button onClick={() => setShowBible(!showBible)} className={`p-2 rounded-md transition-all duration-200 active:scale-90 ${showBible ? `${accentLight} dark:${accentDarkBg} ${accentText} dark:${accentDarkText}` : 'text-slate-400 hover:bg-white dark:hover:bg-slate-700'}`} title="Abrir Bíblia">
+                        <Book className="w-5 h-5" />
+                    </button>
+                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
+                    <button onClick={() => setShowCollectionModal(true)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90" title="Nova Série">
+                        <FolderPlus className="w-5 h-5" />
+                    </button>
+                    <button onClick={exportAllToJSON} className="p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90" title="Backup">
+                        <HardDriveDownload className="w-5 h-5" />
+                    </button>
+                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
+                    <button onClick={() => setDarkMode(!darkMode)} className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </button>
+                    <button onClick={() => setShowSettings(true)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        <Settings className="w-5 h-5" />
+                    </button>
+                    <div className="w-px h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5"></div>
+                    <button onClick={() => setViewState(ViewState.LOGIN)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
         </div>
       </header>
 
       {/* Main Layout */}
       <div className="flex flex-1 max-w-7xl mx-auto w-full overflow-hidden">
-        {/* Main Content Area */}
-        <main className={`flex-1 p-4 sm:p-6 overflow-y-auto transition-all duration-300 ${showBible ? 'mr-0' : 'mr-0'}`}>
-            {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} initialEntry={entryToEdit} />}
-            {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} onEdit={handleEditEntry} />}
-            {viewState === ViewState.STATS && <StatsDashboard entries={entries} />}
+        {/* Main Content Area with Page Transition */}
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
+            <div className={`transition-all duration-300 ease-out ${viewState === ViewState.EDITOR ? 'opacity-100 translate-y-0' : viewState === ViewState.LIBRARY ? 'opacity-100 translate-y-0' : 'opacity-100 translate-y-0'}`}>
+                {viewState === ViewState.EDITOR && <TextEditor onSave={handleSaveEntry} collections={collections} initialEntry={entryToEdit} />}
+                {viewState === ViewState.LIBRARY && <Library entries={entries} collections={collections} onToggleFavorite={toggleFavorite} onDelete={handleDeleteEntry} onEdit={handleEditEntry} accentColor={accentColor} />}
+                {viewState === ViewState.STATS && <StatsDashboard entries={entries} />}
+            </div>
         </main>
 
-        {/* Bible Sidebar */}
-        <aside className={`${showBible ? 'w-80 translate-x-0' : 'w-0 translate-x-full hidden'} transition-all duration-300 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 fixed right-0 top-16 bottom-0 z-20 shadow-xl lg:relative lg:top-0 lg:shadow-none`}>
+        {/* Bible Sidebar - Layout Push */}
+        <aside className={`${showBible ? 'w-80 translate-x-0' : 'w-0 -translate-x-full'} transition-all duration-300 ease-out border-l border-slate-200/50 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl fixed right-0 top-16 bottom-0 z-20 shadow-2xl lg:relative lg:top-0 lg:shadow-none lg:translate-x-0 lg:w-0`}>
             <BibleSidebar />
         </aside>
       </div>

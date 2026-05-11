@@ -12,12 +12,13 @@ interface LibraryProps {
   onToggleFavorite: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (entry: TextEntry) => void;
+  accentColor?: string;
 }
 
 type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc' | 'favorites';
 type ViewMode = 'grid' | 'list';
 
-export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite, onDelete, onEdit }) => {
+export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggleFavorite, onDelete, onEdit, accentColor = 'indigo' }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedCollection, setSelectedCollection] = useState('');
@@ -28,6 +29,29 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+
+  const getAccentClasses = (dark = false) => {
+    const colorMap: Record<string, { bg: string; hover: string; text: string; light: string; ring: string; border: string }> = {
+      indigo: { bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', text: 'text-indigo-600', light: 'bg-indigo-100', ring: 'ring-indigo-500', border: 'border-indigo-500' },
+      violet: { bg: 'bg-violet-600', hover: 'hover:bg-violet-700', text: 'text-violet-600', light: 'bg-violet-100', ring: 'ring-violet-500', border: 'border-violet-500' },
+      blue: { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', text: 'text-blue-600', light: 'bg-blue-100', ring: 'ring-blue-500', border: 'border-blue-500' },
+      emerald: { bg: 'bg-emerald-600', hover: 'hover:bg-emerald-700', text: 'text-emerald-600', light: 'bg-emerald-100', ring: 'ring-emerald-500', border: 'border-emerald-500' },
+      rose: { bg: 'bg-rose-600', hover: 'hover:bg-rose-700', text: 'text-rose-600', light: 'bg-rose-100', ring: 'ring-rose-500', border: 'border-rose-500' },
+      orange: { bg: 'bg-orange-600', hover: 'hover:bg-orange-700', text: 'text-orange-600', light: 'bg-orange-100', ring: 'ring-orange-500', border: 'border-orange-500' }
+    };
+    const base = colorMap[accentColor] || colorMap.indigo;
+    if (dark) {
+      return {
+        ...base,
+        text: base.text.replace('text-', 'text-').replace('600', '400'),
+        light: base.light.replace('100', '900')
+      };
+    }
+    return base;
+  };
+
+  const accent = getAccentClasses();
+  const accentDark = getAccentClasses(true);
   
   // Slides State
   const [showSlidesModal, setShowSlidesModal] = useState(false);
@@ -222,7 +246,7 @@ const filteredEntries = useMemo(() => {
       {/* Definition Popup */}
       {showDefPopup && selectedWord && (
           <div 
-            className="absolute z-50 bg-white dark:bg-slate-800 shadow-xl rounded-lg border border-indigo-100 dark:border-slate-600 p-3 max-w-xs animate-in zoom-in-95 duration-200"
+            className={`absolute z-50 bg-white dark:bg-slate-800 shadow-xl rounded-lg border ${accent.light} dark:${accentDark.light} ${accent.text} dark:${accentDark.text} p-3 max-w-xs animate-in zoom-in-95 duration-200`}
             style={{ top: popupPos.y, left: popupPos.x }}
           >
               {!definition ? (
@@ -331,10 +355,12 @@ const filteredEntries = useMemo(() => {
         )}
       </div>
 
-      {/* Results */}
-      <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-        {filteredEntries.map(entry => (
-            <div key={entry.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-all hover:shadow-md">
+      {/* Bento Grid Results */}
+      <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-auto' : 'grid-cols-1'}`}>
+        {filteredEntries.map((entry, index) => {
+            const isLarge = entry.correctedBody.length > 1500 || entry.isFavorite;
+            return (
+            <div key={entry.id} className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isLarge && viewMode === 'grid' ? 'md:row-span-2' : ''}`}>
                 <div 
                     className="p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
@@ -430,7 +456,8 @@ const filteredEntries = useMemo(() => {
                     </div>
                 )}
             </div>
-        ))}
+        );
+    })}
         {filteredEntries.length === 0 && <div className="text-center py-20 text-slate-400">Nenhum texto encontrado.</div>}
       </div>
 
