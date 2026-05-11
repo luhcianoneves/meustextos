@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Loader2, FileText, CheckCircle, X, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { searchBibleVerse, suggestTitles, correctGrammar, rewriteInStyle, summarizeSelectedText, translateText } from '../services/aiService';
 
 interface ImportTextsProps {
   onImportComplete: (count: number) => void;
@@ -20,57 +21,22 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseTextsWithAI = async (text: string): Promise<ParsedText[]> => {
-    const prompt = `Analise o texto abaixo e identifique múltiplos textos/blog posts/reflexões. 
-
-Para CADA texto identificado, retorne no formato EXATO:
-[TITLE: título do texto]
-[DATE: data estimada no formato YYYY-MM-DD]
-[CONTENT: conteúdo completo do texto]
-
-Separe cada texto com "---SEPARATOR---"
-
-Se o texto for muito longo, divida em partes lógicas (por temas ou parágrafos principais).
-
-Texto para analisar:
-${text}`;
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDDiqW_bT1m2c8hVJyVzG2-kGy7JZh4wIw', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 32000
-        }
-      })
-    });
-
-    const data = await response.json();
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    const texts: ParsedText[] = [];
-    const segments = result.split('---SEPARATOR---');
-
-    for (const segment of segments) {
-      const titleMatch = segment.match(/\[TITLE:\s*(.*?)\]/i);
-      const dateMatch = segment.match(/\[DATE:\s*(.*?)\]/i);
-      const contentMatch = segment.match(/\[CONTENT:\s*(.*?)\]/i);
-
-      if (titleMatch && contentMatch) {
-        texts.push({
-          title: titleMatch[1].trim(),
-          content: contentMatch[1].trim(),
-          suggestedDate: dateMatch ? dateMatch[1].trim() : new Date().toISOString().split('T')[0]
-        });
-      }
+    try {
+      const { processTextEntry } = await import('../services/aiService');
+      const result = await processTextEntry('Analisar textos', text);
+      const texts: ParsedText[] = [{
+        title: result.correctedTitle || 'Texto Importado',
+        content: result.correctedBody || text.substring(0, 5000),
+        suggestedDate: new Date().toISOString().split('T')[0]
+      }];
+      return texts;
+    } catch {
+      return [{
+        title: 'Texto Importado',
+        content: text.substring(0, 5000),
+        suggestedDate: new Date().toISOString().split('T')[0]
+      }];
     }
-
-    return texts.length > 0 ? texts : [{
-      title: 'Texto Importado',
-      content: text.substring(0, 5000),
-      suggestedDate: new Date().toISOString().split('T')[0]
-    }];
   };
 
   const handleFile = async (file: File) => {
@@ -133,44 +99,34 @@ ${text}`;
     setIsProcessing(true);
     let saved = 0;
 
-    for (const text of parsedTexts) {
-      const processed = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDDiqW_bT1m2c8hVJyVzG2-kGy7JZh4wIw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `Analise o texto e extraia: título corrigido, corpo formatado em HTML, resumo em 1 frase, tags relevantes (lista de 3-5 palavras), e citações bíblicas se houver. Retorne JSON com: correctedTitle, correctedBody, summary, tags, bibleCitations. Texto: ${text.content.substring(0, 3000)}` }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 4000 }
-        })
-      });
-
-      const data = await processed.json();
-      const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-      let parsed = { correctedTitle: text.title, correctedBody: text.content, summary: '', tags: [], bibleCitations: [] as any[] };
+    try {
+      const { processTextEntry } = await import('../services/aiService');
       
-      try {
-        const jsonMatch = result.match(/\{[\s\S]*\}/);
-        if (jsonMatch) parsed = { ...parsed, ...JSON.parse(jsonMatch[0]) };
-      } catch (e) {}
+      for (const text of parsedTexts) {
+        const result = await processTextEntry(text.title, text.content);
+        
+        const entry = {
+          id: crypto.randomUUID(),
+          originalTitle: text.title,
+          originalBody: text.content,
+          correctedTitle: result.correctedTitle || text.title,
+          correctedBody: result.correctedBody || text.content,
+          summary: result.summary || text.content.substring(0, 100) + '...',
+          tags: result.tags || [],
+          bibleCitations: result.bibleCitations || [],
+          creationDate: text.suggestedDate,
+          savedAt: Date.now(),
+          isFavorite: false,
+          collectionId: '',
+          versions: []
+        };
 
-      const entry = {
-        id: crypto.randomUUID(),
-        originalTitle: text.title,
-        originalBody: text.content,
-        correctedTitle: parsed.correctedTitle,
-        correctedBody: parsed.correctedBody,
-        summary: parsed.summary || text.content.substring(0, 100) + '...',
-        tags: parsed.tags || [],
-        bibleCitations: parsed.bibleCitations || [],
-        creationDate: text.suggestedDate,
-        savedAt: Date.now(),
-        isFavorite: false,
-        collectionId: '',
-        versions: []
-      };
-
-      const existing = JSON.parse(localStorage.getItem('luciano-scribe-texts') || '[]');
-      localStorage.setItem('luciano-scribe-texts', JSON.stringify([entry, ...existing]));
-      saved++;
+        const existing = JSON.parse(localStorage.getItem('luciano-scribe-texts') || '[]');
+        localStorage.setItem('luciano-scribe-texts', JSON.stringify([entry, ...existing]));
+        saved++;
+      }
+    } catch (err) {
+      console.error("Erro ao processar textos:", err);
     }
 
     setIsProcessing(false);

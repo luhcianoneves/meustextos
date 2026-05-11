@@ -68,4 +68,6 @@ export interface SupabaseConfig {
   email?: string;
   password?: string;
   geminiApiKey?: string;
+  openrouterApiKey?: string;
+  openrouterModel?: string;
 }

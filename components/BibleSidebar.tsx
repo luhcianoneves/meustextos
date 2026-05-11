@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Copy, Loader2, BookOpen } from 'lucide-react';
-import { searchBibleVerse } from '../services/geminiService';
+import { searchBibleVerse } from '../services/aiService';
 
 export const BibleSidebar: React.FC = () => {
   const [query, setQuery] = useState('');

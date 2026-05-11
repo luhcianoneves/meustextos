@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle } from 'lucide-react';
-import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/geminiService';
+import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/aiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
 import { AIAgent } from './AIAgent';

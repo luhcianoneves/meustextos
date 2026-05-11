@@ -4,7 +4,7 @@ import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMark
 import { TextEntry, Collection, Slide } from '../types';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
-import { generateSlides, getTheologicalDefinition } from '../services/geminiService';
+import { generateSlides, getTheologicalDefinition } from '../services/aiService';
 
 interface LibraryProps {
   entries: TextEntry[];
