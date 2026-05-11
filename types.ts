@@ -67,4 +67,5 @@ export interface SupabaseConfig {
   isEnabled: boolean;
   email?: string;
   password?: string;
+  geminiApiKey?: string;
 }

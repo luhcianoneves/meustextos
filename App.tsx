@@ -29,13 +29,14 @@ const App: React.FC = () => {
   // Edit State
   const [entryToEdit, setEntryToEdit] = useState<TextEntry | null>(null);
   
-  // Settings State
+// Settings State
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>({ 
     url: 'https://dptncbgdrjrvxchmrqcy.supabase.co', 
     key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG5jYmdkcmpydnhjaG1ycWN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODk1MTUsImV4cCI6MjA5MzY2NTUxNX0.lImTZdyQ_1jWogffjj084aZxq9BTSwIE4DyI7weB3_E', 
     isEnabled: true, 
-    email: 'luhcianoneves@gmail.com', 
-    password: '' 
+    email: 'luhcianoneves@gmail.com',
+    password: '',
+    geminiApiKey: 'AIzaSyDDiqW_bT1m2c8hVJyVzG2-kGy7JZh4wIw'
   });
 
   useEffect(() => {
@@ -292,7 +293,7 @@ const App: React.FC = () => {
                         <Book className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <div className="w-px h-4 sm:h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5 hidden xs:inline"></div>
-                    <button onClick={() => setShowCollectionModal(true)} className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90 hidden xs:inline" title="Nova Série">
+                    <button onClick={() => setShowCollectionModal(true)} className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90" title="Nova Série">
                         <FolderPlus className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <button onClick={exportAllToJSON} className="p-1.5 sm:p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90 hidden xs:inline" title="Backup">
@@ -370,11 +371,22 @@ const App: React.FC = () => {
                           <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão Supabase (Nuvem)</h4>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte seu banco de dados para backup e sincronização. <br/>É necessário criar um usuário no painel do Supabase.</p>
                           
-                          <div className="space-y-3">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                  <input type="checkbox" checked={supabaseConfig.isEnabled} onChange={(e) => setSupabaseConfig({...supabaseConfig, isEnabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500"/>
-                                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ativar Integração</span>
-                              </label>
+                       <div className="space-y-3">
+                               <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                   <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API Gemini (IA)</h4>
+                                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Chave da API do Google Gemini para recursos de IA.</p>
+                                   <input 
+                                     type="password" 
+                                     placeholder="AIzaSy..." 
+                                     value={supabaseConfig.geminiApiKey || ''}
+                                     onChange={(e) => setSupabaseConfig({...supabaseConfig, geminiApiKey: e.target.value})}
+                                     className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                   />
+                               </div>
+                               <label className="flex items-center gap-2 cursor-pointer">
+                                   <input type="checkbox" checked={supabaseConfig.isEnabled} onChange={(e) => setSupabaseConfig({...supabaseConfig, isEnabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500"/>
+                                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ativar Integração</span>
+                               </label>
                               <input 
                                 type="text" 
                                 placeholder="Supabase URL (https://xyz.supabase.co)" 

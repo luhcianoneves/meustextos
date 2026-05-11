@@ -6,18 +6,29 @@ const getAIClient = () => {
   let apiKey = '';
   console.log("Luciano's Scribe: Initializing AI Client...");
 
-  // 1. Try standard process.env (Node/Webpack) - Safely
+  // 1. Try from localStorage (configured in app)
   try {
-    if (typeof process !== 'undefined' && process.env) {
-      apiKey = process.env.VITE_API_KEY || 
-               process.env.API_KEY || 
-               process.env.REACT_APP_API_KEY || '';
+    const config = localStorage.getItem('luciano-scribe-config');
+    if (config) {
+      const parsed = JSON.parse(config);
+      if (parsed.geminiApiKey) apiKey = parsed.geminiApiKey;
     }
-  } catch (e) {
-    // Ignore ReferenceError if process is not defined
+  } catch (e) { /* ignore */ }
+
+  // 2. Try standard process.env (Node/Webpack) - Safely
+  if (!apiKey) {
+    try {
+      if (typeof process !== 'undefined' && process.env) {
+        apiKey = process.env.VITE_API_KEY || 
+                 process.env.API_KEY || 
+                 process.env.REACT_APP_API_KEY || '';
+      }
+    } catch (e) {
+      // Ignore ReferenceError if process is not defined
+    }
   }
 
-  // 2. Try import.meta.env (Vite/Modern)
+  // 3. Try import.meta.env (Vite/Modern)
   if (!apiKey) {
     try {
       // @ts-ignore
@@ -32,7 +43,7 @@ const getAIClient = () => {
   
   if (!apiKey) {
     console.error("API Key NOT found in environment variables.");
-    throw new Error("Chave de API não encontrada. No Vercel, vá em Settings > Environment Variables e adicione 'VITE_API_KEY'.");
+    throw new Error("Chave de API não encontrada. Configure em Configurações.");
   } else {
     console.log("API Key found successfully.");
   }
