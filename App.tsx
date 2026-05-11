@@ -407,15 +407,15 @@ const App: React.FC = () => {
                                            },
                                            body: JSON.stringify({
                                              model: supabaseConfig.openrouterModel,
-                                             messages: [{ role: 'user', content: 'Olá!' }],
-                                             max_tokens: 10
+                                             messages: [{ role: 'user', content: 'Responda apenas: OK' }],
+                                             max_tokens: 5
                                            })
                                          });
-                                         if (res.ok) {
-                                           alert('✅ Modelo funcionando corretamente!');
+                                         const data = await res.json();
+                                         if (res.ok && data.choices?.[0]?.message?.content) {
+                                           alert('✅ Modelo funcionando: ' + data.choices[0].message.content);
                                          } else {
-                                           const err = await res.json();
-                                           alert('❌ Erro: ' + (err.error?.message || res.statusText));
+                                           alert('❌ Erro: ' + (data.error?.message || 'Verifique o modelo'));
                                          }
                                        } catch (e: any) {
                                          alert('❌ Erro: ' + e.message);
