@@ -61,12 +61,12 @@ export enum ViewState {
   IMPORT = 'IMPORT'
 }
 
-export interface SupabaseConfig {
+export interface ApiConfig {
   url: string;
-  key: string;
   isEnabled: boolean;
   email?: string;
   password?: string;
+  token?: string;
   geminiApiKey?: string;
   openrouterApiKey?: string;
   openrouterModel?: string;

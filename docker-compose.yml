@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scribe-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: meustextos
+      POSTGRES_USER: luhcianoneves
+      POSTGRES_PASSWORD: leticia2011
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: scribe-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: luhcianoneves@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: leticia2011
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+
+  backend:
+    build: ./backend
+    container_name: scribe-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://luhcianoneves:leticia2011@postgres:5432/meustextos
+      JWT_SECRET: luciano-scribe-jwt-secret-2024
+      PORT: 3001
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

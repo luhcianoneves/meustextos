@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Mail, Eye, EyeOff, PenLine, Loader2, AlertCircle, Sparkles } from 'lucide-react';
-import { getSupabaseConfig, initStorage } from '../services/storageService';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getApiConfig, login, setToken, saveApiConfig } from '../services/storageService';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
@@ -17,16 +16,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      const config = getSupabaseConfig();
-      if (config.isEnabled && config.url && config.key && config.email && config.password) {
+      const config = getApiConfig();
+      if (config.isEnabled && config.url && config.token && config.email && config.password) {
         try {
-          const supabase = createClient(config.url, config.key, {
-            auth: { persistSession: true, autoRefreshToken: true }
-          });
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            onLoginSuccess();
-          }
+          setToken(config.token);
+          onLoginSuccess();
         } catch (e) {
           console.error('Session check failed:', e);
         }
@@ -41,37 +35,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      const config = getSupabaseConfig();
-      
-      if (!config.url || !config.key || !config.isEnabled) {
-        setError('Supabase não configurada. Acesse as Configurações e configure a conexão.');
+      const config = getApiConfig();
+
+      if (!config.url || !config.isEnabled) {
+        setError('API não configurada. Acesse as Configurações e configure o endereço do servidor.');
         setIsLoading(false);
         return;
       }
 
-      const supabase = createClient(config.url, config.key, {
-        auth: { persistSession: rememberMe, autoRefreshToken: true }
-      });
+      const result = await login(email.trim(), password);
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
+      setToken(result.token);
 
-      if (authError) {
-        setError(authError.message === 'Invalid login credentials' 
-          ? 'Email ou senha incorretos.' 
-          : authError.message);
-        setIsLoading(false);
-        return;
+      if (rememberMe) {
+        await saveApiConfig({ ...config, email: email.trim(), password: password, token: result.token });
       }
 
-      if (data.session) {
-        await initStorage();
-        onLoginSuccess();
-      }
+      onLoginSuccess();
     } catch (err) {
-      setError('Erro ao conectar. Verifique sua conexão.');
+      setError(err instanceof Error ? err.message : 'Erro ao conectar. Verifique sua conexão.');
       setIsLoading(false);
     }
   };
@@ -81,7 +63,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-12 flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptLTQtNHYyaC0ydi0yaDJ6bTggNHYyaC0ydi0yaDJ6bS04IDh2MmgtMnYtMmgyeiIvPjwvZzwvL2c+PC9zdmc+')] opacity-30"></div>
-        
+
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
@@ -89,7 +71,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </div>
             <span className="text-2xl font-bold text-white tracking-wide">Luciano's Scribe</span>
           </div>
-          
+
           <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
             Sua plataforma de<br/>
             <span className="text-indigo-200">escrita criativa</span>

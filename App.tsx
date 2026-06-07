@@ -6,8 +6,8 @@ import { Library } from './components/Library';
 import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
 import { ImportTexts } from './components/ImportTexts';
-import { TextEntry, ViewState, Collection, SupabaseConfig } from './types';
-import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveSupabaseConfig, getSupabaseConfig, initStorage, deleteTextEntry } from './services/storageService';
+import { TextEntry, ViewState, Collection, ApiConfig } from './types';
+import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveApiConfig, getApiConfig, initStorage, deleteTextEntry } from './services/storageService';
 import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell, Upload, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -30,9 +30,8 @@ const App: React.FC = () => {
   const [entryToEdit, setEntryToEdit] = useState<TextEntry | null>(null);
   
 // Settings State
-  const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>({ 
-    url: 'https://dptncbgdrjrvxchmrqcy.supabase.co', 
-    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG5jYmdkcmpydnhjaG1ycWN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODk1MTUsImV4cCI6MjA5MzY2NTUxNX0.lImTZdyQ_1jWogffjj084aZxq9BTSwIE4DyI7weB3_E', 
+  const [apiConfig, setApiConfig] = useState<ApiConfig>({ 
+    url: 'http://187.77.13.177:3001',
     isEnabled: true, 
     email: 'luhcianoneves@gmail.com',
     password: '',
@@ -51,19 +50,18 @@ const App: React.FC = () => {
             setEntries(loadedTexts);
             setCollections(loadedCollections);
             
-            const sc = getSupabaseConfig();
-            if (!sc.url) {
+            const ac = getApiConfig();
+            if (!ac.url) {
               const defaultConfig = { 
-                url: 'https://dptncbgdrjrvxchmrqcy.supabase.co', 
-                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdG5jYmdkcmpydnhjaG1ycWN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODk1MTUsImV4cCI6MjA5MzY2NTUxNX0.lImTZdyQ_1jWogffjj084aZxq9BTSwIE4DyI7weB3_E', 
+                url: 'http://187.77.13.177:3001',
                 isEnabled: true, 
                 email: 'luhcianoneves@gmail.com', 
                 password: '' 
               };
-              setSupabaseConfig(defaultConfig);
-              await saveSupabaseConfig(defaultConfig);
+              setApiConfig(defaultConfig);
+              await saveApiConfig(defaultConfig);
             } else {
-              setSupabaseConfig(sc);
+              setApiConfig(ac);
             }
         } catch (e) {
             console.error("Initialization error:", e);
@@ -183,8 +181,8 @@ const App: React.FC = () => {
   };
 
   const handleSaveSettings = async () => {
-      await saveSupabaseConfig(supabaseConfig);
-      alert("Configurações salvas. Se as credenciais estiverem corretas, seus dados serão sincronizados.");
+      await saveApiConfig(apiConfig);
+      alert("Configurações salvas. Verifique se o servidor está acessível.");
       // Re-load data to verify connection and sync
       const loadedTexts = await loadTexts();
       setEntries(loadedTexts);
@@ -370,112 +368,106 @@ const App: React.FC = () => {
                       <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
                   </div>
                   
-                  <div className="space-y-4">
-                      <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão Supabase (Nuvem)</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte seu banco de dados para backup e sincronização. <br/>É necessário criar um usuário no painel do Supabase.</p>
-                          
-                       <div className="space-y-3">
-                               <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                   <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API OpenRouter (Opcional)</h4>
-                                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Use um provider de IA diferente. Deixa vazio para usar Gemini.</p>
-                                   <input
-                                     type="password"
-                                     placeholder="sk-or-v1-..."
-                                     value={supabaseConfig.openrouterApiKey || ''}
-                                     onChange={(e) => setSupabaseConfig({...supabaseConfig, openrouterApiKey: e.target.value})}
+                   <div className="space-y-4">
+                       <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                           <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão com Servidor Próprio</h4>
+                           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte ao seu servidor Node.js + PostgreSQL rodando na VPS.</p>
+
+                        <div className="space-y-3">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API OpenRouter (Opcional)</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Use um provider de IA diferente. Deixa vazio para usar Gemini.</p>
+                                    <input
+                                      type="password"
+                                      placeholder="sk-or-v1-..."
+                                      value={apiConfig.openrouterApiKey || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, openrouterApiKey: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="inclusionai/ring-2.6-1t:free"
+                                      value={apiConfig.openrouterModel || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, openrouterModel: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                    />
+                                    <p className="text-xs text-slate-400 mt-1 mb-2">Código do modelo (ex: anthropic/claude-3.5-sonnet)</p>
+                                    <button 
+                                      onClick={async () => {
+                                        if (!apiConfig.openrouterApiKey || !apiConfig.openrouterModel) {
+                                          alert('Preencha API Key e Modelo primeiro.');
+                                          return;
+                                        }
+                                        try {
+                                          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                                            method: 'POST',
+                                            headers: {
+                                              'Content-Type': 'application/json',
+                                              'Authorization': `Bearer ${apiConfig.openrouterApiKey}`
+                                            },
+                                            body: JSON.stringify({
+                                              model: apiConfig.openrouterModel,
+                                              messages: [{ role: 'user', content: 'Responda apenas: OK' }],
+                                              max_tokens: 5
+                                            })
+                                          });
+                                          const data = await res.json();
+                                          if (res.ok && data.choices?.[0]?.message?.content) {
+                                            alert('✅ Modelo funcionando: ' + data.choices[0].message.content);
+                                          } else {
+                                            alert('❌ Erro: ' + (data.error?.message || 'Verifique o modelo'));
+                                          }
+                                        } catch (e: any) {
+                                          alert('❌ Erro: ' + e.message);
+                                        }
+                                      }}
+                                      className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium flex justify-center items-center gap-2"
+                                    >
+                                      <Sparkles className="w-4 h-4" /> Validar OpenRouter
+                                    </button>
+                                </div>
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API Gemini (IA)</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Chave da API do Google Gemini para recursos de IA.</p>
+                                    <input 
+                                      type="password" 
+                                      placeholder="AIzaSy..." 
+                                      value={apiConfig.geminiApiKey || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, geminiApiKey: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                    />
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked={apiConfig.isEnabled} onChange={(e) => setApiConfig({...apiConfig, isEnabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500"/>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ativar Conexão</span>
+                                </label>
+                               <input 
+                                 type="text" 
+                                 placeholder="URL da API (http://187.77.13.177:3001)" 
+                                 value={apiConfig.url}
+                                 onChange={(e) => setApiConfig({...apiConfig, url: e.target.value})}
+                                 className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                               />
+                               <p className="text-xs text-slate-400 mb-2">Endereço do servidor Node.js (com porta)</p>
+                               <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                                   <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Autenticação (para login)</p>
+                                   <input 
+                                     type="email" 
+                                     placeholder="Email do Usuário" 
+                                     value={apiConfig.email || ''}
+                                     onChange={(e) => setApiConfig({...apiConfig, email: e.target.value})}
                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
                                    />
-                                   <input
-                                     type="text"
-                                     placeholder="inclusionai/ring-2.6-1t:free"
-                                     value={supabaseConfig.openrouterModel || ''}
-                                     onChange={(e) => setSupabaseConfig({...supabaseConfig, openrouterModel: e.target.value})}
-                                     className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                                   />
-                                   <p className="text-xs text-slate-400 mt-1 mb-2">Código do modelo (ex: anthropic/claude-3.5-sonnet)</p>
-                                   <button 
-                                     onClick={async () => {
-                                       if (!supabaseConfig.openrouterApiKey || !supabaseConfig.openrouterModel) {
-                                         alert('Preencha API Key e Modelo primeiro.');
-                                         return;
-                                       }
-                                       try {
-                                         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                                           method: 'POST',
-                                           headers: {
-                                             'Content-Type': 'application/json',
-                                             'Authorization': `Bearer ${supabaseConfig.openrouterApiKey}`
-                                           },
-                                           body: JSON.stringify({
-                                             model: supabaseConfig.openrouterModel,
-                                             messages: [{ role: 'user', content: 'Responda apenas: OK' }],
-                                             max_tokens: 5
-                                           })
-                                         });
-                                         const data = await res.json();
-                                         if (res.ok && data.choices?.[0]?.message?.content) {
-                                           alert('✅ Modelo funcionando: ' + data.choices[0].message.content);
-                                         } else {
-                                           alert('❌ Erro: ' + (data.error?.message || 'Verifique o modelo'));
-                                         }
-                                       } catch (e: any) {
-                                         alert('❌ Erro: ' + e.message);
-                                       }
-                                     }}
-                                     className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium flex justify-center items-center gap-2"
-                                   >
-                                     <Sparkles className="w-4 h-4" /> Validar OpenRouter
-                                   </button>
-                               </div>
-                               <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                   <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">API Gemini (IA)</h4>
-                                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Chave da API do Google Gemini para recursos de IA.</p>
                                    <input 
                                      type="password" 
-                                     placeholder="AIzaSy..." 
-                                     value={supabaseConfig.geminiApiKey || ''}
-                                     onChange={(e) => setSupabaseConfig({...supabaseConfig, geminiApiKey: e.target.value})}
+                                     placeholder="Senha do Usuário" 
+                                     value={apiConfig.password || ''}
+                                     onChange={(e) => setApiConfig({...apiConfig, password: e.target.value})}
                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                    />
                                </div>
-                               <label className="flex items-center gap-2 cursor-pointer">
-                                   <input type="checkbox" checked={supabaseConfig.isEnabled} onChange={(e) => setSupabaseConfig({...supabaseConfig, isEnabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500"/>
-                                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ativar Integração</span>
-                               </label>
-                              <input 
-                                type="text" 
-                                placeholder="Supabase URL (https://xyz.supabase.co)" 
-                                value={supabaseConfig.url}
-                                onChange={(e) => setSupabaseConfig({...supabaseConfig, url: e.target.value})}
-                                className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                              />
-                              <input 
-                                type="password" 
-                                placeholder="Supabase Anon Key" 
-                                value={supabaseConfig.key}
-                                onChange={(e) => setSupabaseConfig({...supabaseConfig, key: e.target.value})}
-                                className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                              />
-                              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                                  <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Autenticação (Obrigatório)</p>
-                                  <input 
-                                    type="email" 
-                                    placeholder="Email do Usuário" 
-                                    value={supabaseConfig.email || ''}
-                                    onChange={(e) => setSupabaseConfig({...supabaseConfig, email: e.target.value})}
-                                    className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
-                                  />
-                                  <input 
-                                    type="password" 
-                                    placeholder="Senha do Usuário" 
-                                    value={supabaseConfig.password || ''}
-                                    onChange={(e) => setSupabaseConfig({...supabaseConfig, password: e.target.value})}
-                                    className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                                  />
-                              </div>
-                          </div>
-                      </div>
+                           </div>
+                       </div>
                       
 <button onClick={handleSaveSettings} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
                             <Save className="w-4 h-4" /> Salvar Alterações
