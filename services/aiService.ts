@@ -19,7 +19,7 @@ const getProvider = (): AIProvider => {
   if (configStr) {
     const config = JSON.parse(configStr);
     if (config.openrouterApiKey) {
-      return createOpenRouterProvider(config.openrouterApiKey, config.openrouterModel || 'anthropic/claude-3.5-sonnet');
+      return createOpenRouterProvider(config.openrouterApiKey, config.openrouterModel || 'meta-llama/llama-3.1-8b-instruct:free');
     }
   }
   return createGeminiProvider();

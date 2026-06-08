@@ -391,14 +391,34 @@ const App: React.FC = () => {
                                       onChange={(e) => setApiConfig({...apiConfig, openrouterApiKey: e.target.value})}
                                       className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
                                     />
+                                    <select
+                                      value={apiConfig.openrouterModel || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, openrouterModel: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
+                                    >
+                                      <option value="">Selecione um modelo</option>
+                                      <optgroup label="🆓 Modelos Gratuitos">
+                                        <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (Grátis)</option>
+                                        <option value="microsoft/phi-3-mini-128k-instruct:free">Phi-3 Mini (Grátis)</option>
+                                        <option value="google/gemma-2-9b-it:free">Gemma 2 9B (Grátis)</option>
+                                        <option value="qwen/qwen-2-7b-instruct:free">Qwen 2 7B (Grátis)</option>
+                                      </optgroup>
+                                      <optgroup label="💰 Modelos Premium">
+                                        <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                                        <option value="openai/gpt-4o">GPT-4o</option>
+                                        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                                        <option value="google/gemini-pro-1.5">Gemini Pro 1.5</option>
+                                        <option value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B</option>
+                                      </optgroup>
+                                    </select>
                                     <input
                                       type="text"
-                                      placeholder="inclusionai/ring-2.6-1t:free"
+                                      placeholder="Ou digite modelo personalizado..."
                                       value={apiConfig.openrouterModel || ''}
                                       onChange={(e) => setApiConfig({...apiConfig, openrouterModel: e.target.value})}
                                       className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                     />
-                                    <p className="text-xs text-slate-400 mt-1 mb-2">Código do modelo (ex: anthropic/claude-3.5-sonnet)</p>
+                                    <p className="text-xs text-slate-400 mt-1 mb-2">Escolha da lista ou digite o código do modelo manualmente</p>
                                     <button 
                                       onClick={async () => {
                                         if (!apiConfig.openrouterApiKey || !apiConfig.openrouterModel) {
