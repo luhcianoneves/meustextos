@@ -31,7 +31,7 @@ const App: React.FC = () => {
   
 // Settings State
   const [apiConfig, setApiConfig] = useState<ApiConfig>({ 
-    url: 'http://187.77.13.177:3003',
+    url: 'https://meustextos.vercel.app',
     isEnabled: true, 
     email: 'luhcianoneves@gmail.com',
     password: '',
@@ -53,10 +53,10 @@ const App: React.FC = () => {
             const ac = getApiConfig();
             if (!ac.url) {
               const defaultConfig = { 
-    url: 'http://187.77.13.177:3003',
+                url: 'https://meustextos.vercel.app',
                 isEnabled: true, 
                 email: 'luhcianoneves@gmail.com', 
-                password: '' 
+                password: ''
               };
               setApiConfig(defaultConfig);
               await saveApiConfig(defaultConfig);
@@ -443,7 +443,7 @@ const App: React.FC = () => {
                                 </label>
                                <input 
                                  type="text" 
-                                 placeholder="URL da API (http://187.77.13.177:3003)" 
+                                 placeholder="URL da API (https://meustextos.vercel.app)" 
                                  value={apiConfig.url}
                                  onChange={(e) => setApiConfig({...apiConfig, url: e.target.value})}
                                  className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"

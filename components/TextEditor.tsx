@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2, Scissors, Type as FontIcon, Square } from 'lucide-react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2, Scissors, Type as FontIcon, Square, Grid, Code, FileDown } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/aiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
 import { AIAgent } from './AIAgent';
+import BibleSelector from './BibleSelector';
+import InsertTableModal from './InsertTableModal';
+import TemplatesModal from './TemplatesModal';
 
 interface TextEditorProps {
   onSave: (entry: TextEntry) => void;
@@ -33,6 +36,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   
+  // Modals
+  const [showBibleSelector, setShowBibleSelector] = useState(false);
+  const [showInsertTable, setShowInsertTable] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [markdownMode, setMarkdownMode] = useState(false);
+  const [markdownText, setMarkdownText] = useState('');
+
   // AI Tools
   const [showAITools, setShowAITools] = useState(false);
   const [aiLoading, setAiLoading] = useState('');
@@ -231,20 +241,56 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   };
 
   const insertTable = () => {
-    const rows = prompt("Número de linhas:", "3");
-    const cols = prompt("Número de colunas:", "3");
-    if (!rows || !cols) return;
-    
-    let tableHtml = '<table style="width: 100%; border-collapse: collapse; margin: 10px 0;">';
-    for (let i = 0; i < parseInt(rows); i++) {
-      tableHtml += '<tr>';
-      for (let j = 0; j < parseInt(cols); j++) {
-        tableHtml += `<td style="border: 1px solid #e2e8f0; padding: 8px;">Célula ${i+1}-${j+1}</td>`;
+    setShowInsertTable(true);
+  };
+
+  const handleTableInsert = (html: string) => {
+    executeCommand('insertHTML', false, html);
+    setShowInsertTable(false);
+  };
+
+  const handleBibleCitation = (reference: string, text: string, version: string) => {
+    const html = `<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;margin:15px 0;font-style:italic;">
+  <p style="margin:0;">${text}</p>
+  <small style="color:#92400e;">— ${reference}</small>
+</div>`;
+    executeCommand('insertHTML', false, html + '<br/>');
+    setShowBibleSelector(false);
+  };
+
+  const handleTemplateSelect = (html: string) => {
+    executeCommand('insertHTML', false, html);
+    setShowTemplatesModal(false);
+  };
+
+  const toggleMarkdown = () => {
+    if (!markdownMode) {
+      const editor = editorRef.current;
+      if (editor) {
+        const temp = document.createElement('div');
+        temp.innerHTML = editor.innerHTML;
+        setMarkdownText(temp.innerText);
       }
-      tableHtml += '</tr>';
+      setMarkdownMode(true);
+    } else {
+      const html = markdownText
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br/>');
+      if (editorRef.current) {
+        editorRef.current.innerHTML = '<p>' + html + '</p>';
+      }
+      setMarkdownMode(false);
     }
-    tableHtml += '</table><br>';
-    executeCommand('insertHTML', false, tableHtml);
   };
 
   const setTextColor = (color: string) => {
@@ -341,7 +387,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   };
 
   const handleSave = async () => {
-    const bodyContent = editorRef.current?.innerHTML || '';
+    const bodyContent = markdownMode
+      ? '<p>' + markdownText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>') + '</p>'
+      : editorRef.current?.innerHTML || '';
     if (!title.trim() || !bodyContent.trim() || !date) return alert("Preencha todos os campos.");
 
     setIsProcessing(true);
@@ -888,7 +936,21 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 
             {/* Quick Templates Bar */}
             <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-t-0 bg-slate-100 dark:bg-slate-800 rounded-b-lg">
-              <span className="text-xs text-slate-400 mr-2">Modelos:</span>
+              <span className="text-xs text-slate-400 mr-2">Ferramentas:</span>
+              <button onClick={() => setShowTemplatesModal(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 font-medium">
+                <FileDown className="w-3 h-3" /> Modelos
+              </button>
+              <button onClick={() => setShowBibleSelector(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 font-medium">
+                <BookOpen className="w-3 h-3" /> Bíblia
+              </button>
+              <button onClick={() => setShowInsertTable(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 font-medium">
+                <Grid className="w-3 h-3" /> Tabela
+              </button>
+              <button onClick={toggleMarkdown} className={`flex items-center gap-1 px-3 py-1 text-xs rounded font-medium ${markdownMode ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
+                <Code className="w-3 h-3" /> {markdownMode ? 'Visual' : 'Markdown'}
+              </button>
+              <div className="w-px h-4 bg-slate-300 mx-1"></div>
+              <span className="text-xs text-slate-400 mr-1">Modelos Rápidos:</span>
               <button onClick={() => insertTemplate('versiculo')} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
               <button onClick={() => insertTemplate('destaque')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
               <button onClick={() => insertTemplate('alert')} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
@@ -901,12 +963,21 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               <button onClick={cleanAllFormatting} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
             </div>
 
-            <div
-              ref={editorRef}
-              contentEditable
-              className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-black dark:text-slate-100 overflow-y-auto"
-              data-placeholder="Comece a escrever ou importe um áudio..."
-            />
+            {markdownMode ? (
+              <textarea
+                value={markdownText}
+                onChange={e => setMarkdownText(e.target.value)}
+                className="w-full px-8 py-8 min-h-[500px] font-mono text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-slate-100"
+                placeholder="Escreva em Markdown..."
+              />
+            ) : (
+              <div
+                ref={editorRef}
+                contentEditable
+                className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-black dark:text-slate-100 overflow-y-auto"
+                data-placeholder="Comece a escrever ou importe um áudio..."
+              />
+            )}
           </div>
 
           <div className="flex justify-end pt-4">
@@ -921,6 +992,28 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             </button>
           </div>
         </div>
+
+        {showBibleSelector && (
+          <BibleSelector
+            onSelect={handleBibleCitation}
+            onClose={() => setShowBibleSelector(false)}
+          />
+        )}
+
+        {showInsertTable && (
+          <InsertTableModal
+            onInsert={handleTableInsert}
+            onClose={() => setShowInsertTable(false)}
+          />
+        )}
+
+        {showTemplatesModal && (
+          <TemplatesModal
+            onSelect={handleTemplateSelect}
+            onClose={() => setShowTemplatesModal(false)}
+            currentTitle={title}
+          />
+        )}
 
         <AIAgent 
           editorContent={editorRef.current?.innerText || ''}
