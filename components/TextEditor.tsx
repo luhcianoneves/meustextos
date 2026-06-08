@@ -911,7 +911,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
                   <p className="w-full text-xs text-slate-400 mb-1">Cor do Texto:</p>
                   {['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'].map(c => (
-                    <button key={c} onClick={() => setTextColor(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
+                    <button key={c} onMouseDown={e => { e.preventDefault(); setTextColor(c); }} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
@@ -923,7 +923,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
                   <p className="w-full text-xs text-slate-400 mb-1">Fundo:</p>
                   {['#ffffff', '#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#f5d0fe', '#f0fdf4', '#fef2f2'].map(c => (
-                    <button key={c} onClick={() => setHighlight(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
+                    <button key={c} onMouseDown={e => { e.preventDefault(); setHighlight(c); }} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
@@ -951,16 +951,16 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               </button>
               <div className="w-px h-4 bg-slate-300 mx-1"></div>
               <span className="text-xs text-slate-400 mr-1">Modelos Rápidos:</span>
-              <button onClick={() => insertTemplate('versiculo')} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
-              <button onClick={() => insertTemplate('destaque')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
-              <button onClick={() => insertTemplate('alert')} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
-              <button onClick={() => insertTemplate('passo')} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
-              <button onClick={() => insertTemplate('comparacao')} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
-              <button onClick={insertEmoji} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
+              <button onMouseDown={e => { e.preventDefault(); insertTemplate('versiculo'); }} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
+              <button onMouseDown={e => { e.preventDefault(); insertTemplate('destaque'); }} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
+              <button onMouseDown={e => { e.preventDefault(); insertTemplate('alert'); }} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
+              <button onMouseDown={e => { e.preventDefault(); insertTemplate('passo'); }} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
+              <button onMouseDown={e => { e.preventDefault(); insertTemplate('comparacao'); }} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
+              <button onMouseDown={e => { e.preventDefault(); insertEmoji(); }} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
               <div className="w-px h-4 bg-slate-300 mx-2"></div>
               <span className="text-xs text-slate-400 mr-1">Limpar:</span>
-              <button onClick={cleanPastedText} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
-              <button onClick={cleanAllFormatting} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
+              <button onMouseDown={e => { e.preventDefault(); cleanPastedText(); }} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
+              <button onMouseDown={e => { e.preventDefault(); cleanAllFormatting(); }} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
             </div>
 
             {markdownMode ? (
@@ -1031,7 +1031,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 };
 
 const ToolbarButton: React.FC<{ onClick: () => void; icon: React.ReactNode; title: string }> = ({ onClick, icon, title }) => (
-  <button onClick={onClick} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
+  <button onMouseDown={e => { e.preventDefault(); onClick(); }} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
     {icon}
   </button>
 );
