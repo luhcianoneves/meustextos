@@ -53,17 +53,35 @@ const createGeminiProvider = (): AIProvider => {
 
   return {
     processTextEntry: async (title, body) => {
-      const data = await postAI({
-        parts: [{ text: `Analise o texto. 1) Corrija título e corpo (preserve HTML). 2) Gere 5 tags. 3) Resumo em 2 frases. 4) Identifique citações bíblicas. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}. Título: ${title}. Corpo: ${body}` }]
-      }, {
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 4000,
-          responseMimeType: "application/json"
-        }
-      });
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-      return JSON.parse(text);
+      try {
+        const data = await postAI({
+          parts: [{ text: `Analise o texto. 1) Corrija título e corpo (preserve HTML). 2) Gere 5 tags. 3) Resumo em 2 frases. 4) Identifique citações bíblicas. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}. Título: ${title}. Corpo: ${body}` }]
+        }, {
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 4000,
+            responseMimeType: "application/json"
+          }
+        });
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        const parsed = JSON.parse(text);
+        return {
+          correctedTitle: parsed.correctedTitle || title,
+          correctedBody: parsed.correctedBody || body,
+          summary: parsed.summary || '',
+          tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+          bibleCitations: Array.isArray(parsed.bibleCitations) ? parsed.bibleCitations : []
+        };
+      } catch (e) {
+        console.error('processTextEntry error:', e);
+        return {
+          correctedTitle: title,
+          correctedBody: body,
+          summary: '',
+          tags: [],
+          bibleCitations: []
+        };
+      }
     },
 
     generateIllustration: async (content) => {

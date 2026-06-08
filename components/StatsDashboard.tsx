@@ -20,9 +20,11 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
   // Tag frequency
   const tagCounts: Record<string, number> = {};
   entries.forEach(entry => {
-    entry.tags.forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-    });
+    if (Array.isArray(entry.tags)) {
+      entry.tags.forEach(tag => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
   });
   
   const sortedTags = Object.entries(tagCounts)
@@ -49,7 +51,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
           nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#6366f1' }); // Indigo
 
           // Find connected texts (Moons)
-          const relatedTexts = entries.filter(e => e.tags.includes(tag)).slice(0, 4);
+          const relatedTexts = entries.filter(e => Array.isArray(e.tags) && e.tags.includes(tag)).slice(0, 4);
           relatedTexts.forEach((txt, j) => {
                const moonAngle = (j / relatedTexts.length) * 2 * Math.PI;
                const moonR = 50;

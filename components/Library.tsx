@@ -67,7 +67,11 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    entries.forEach(entry => entry.tags.forEach(tag => tags.add(tag)));
+    entries.forEach(entry => {
+      if (Array.isArray(entry.tags)) {
+        entry.tags.forEach(tag => tags.add(tag));
+      }
+    });
     return Array.from(tags).sort();
   }, [entries]);
 
@@ -76,8 +80,8 @@ const filteredEntries = useMemo(() => {
       const matchesTerm = searchTerm === '' || 
         entry.correctedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.correctedBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesTag = selectedTag === '' || entry.tags.includes(selectedTag);
+        (Array.isArray(entry.tags) && entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+      const matchesTag = selectedTag === '' || (Array.isArray(entry.tags) && entry.tags.includes(selectedTag));
       const matchesCollection = selectedCollection === '' || entry.collectionId === selectedCollection;
       const matchesFav = onlyFavorites ? entry.isFavorite : true;
       
@@ -237,6 +241,7 @@ const filteredEntries = useMemo(() => {
   const getRelatedTexts = (currentEntry: TextEntry) => {
       return entries.filter(e => 
           e.id !== currentEntry.id && 
+          Array.isArray(e.tags) && Array.isArray(currentEntry.tags) &&
           e.tags.some(t => currentEntry.tags.includes(t))
       ).slice(0, 3);
   };
@@ -381,7 +386,7 @@ const filteredEntries = useMemo(() => {
                             <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{entry.summary || "Sem resumo disponível."}</p>
                             
                             <div className="flex gap-2 mt-3">
-                                {entry.tags.slice(0, 3).map(tag => (
+                                {(Array.isArray(entry.tags) ? entry.tags : []).slice(0, 3).map(tag => (
                                     <span key={tag} className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600">#{tag}</span>
                                 ))}
                             </div>
@@ -432,7 +437,7 @@ const filteredEntries = useMemo(() => {
                                     {getRelatedTexts(entry).map(rel => (
                                         <div key={rel.id} onClick={() => setExpandedId(rel.id)} className="cursor-pointer p-3 bg-white dark:bg-slate-800 rounded border border-indigo-100 dark:border-slate-700 hover:shadow-sm">
                                             <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle}</p>
-                                            <p className="text-xs text-slate-500">{new Date(rel.creationDate).toLocaleDateString()} • {rel.tags.filter(t => entry.tags.includes(t)).join(', ')}</p>
+                                            <p className="text-xs text-slate-500">{new Date(rel.creationDate).toLocaleDateString()} • {(Array.isArray(rel.tags) && Array.isArray(entry.tags)) ? rel.tags.filter(t => entry.tags.includes(t)).join(', ') : ''}</p>
                                         </div>
                                     ))}
                                 </div>
