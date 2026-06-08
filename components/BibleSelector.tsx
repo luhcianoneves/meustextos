@@ -85,7 +85,7 @@ const BOOKS: BibleBook[] = [
   { id: 66, name: 'Apocalipse', abbreviation: 'Ap', testament: 'NT', chapters: 22 },
 ];
 
-const VERSIONS = ['ACF', 'ARA', 'NVI', 'NTLH', 'KJV'];
+const VERSIONS = ['ACF', 'ARA', 'NVI', 'NTLH', 'KJA', 'KJF', 'NAA', 'A Mensagem'];
 
 const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
   const [selectedBook, setSelectedBook] = useState<number | null>(null);

@@ -16,53 +16,105 @@ interface VersePanel {
 const VERSION_OPTIONS = [
   { value: 'ACF', label: 'ACF - Almeida Corrigida Fiel' },
   { value: 'ARA', label: 'ARA - Almeida Revista e Atualizada' },
-  { value: 'NTLH', label: 'NTLH - Nova Tradução na Linguagem de Hoje' },
-  { value: 'A Mensagem', label: 'A Mensagem' },
   { value: 'NVI', label: 'NVI - Nova Versão Internacional' },
-  { value: 'KJV', label: 'KJV - King James Version' },
+  { value: 'NTLH', label: 'NTLH - Nova Tradução na Linguagem de Hoje' },
+  { value: 'KJA', label: 'KJA - King James Atualizada' },
+  { value: 'KJF', label: 'KJF - King James Fiel' },
+  { value: 'NAA', label: 'NAA - Nova Almeida Atualizada' },
+  { value: 'A Mensagem', label: 'A Mensagem - The Message' },
 ];
 
-const parseReference = (q: string): { book: string; chapter: number; verse: number } | null => {
-  const match = q.trim().match(/^(.+?)\s+(\d+):(\d+)$/);
-  if (!match) return null;
-  const bookMap: Record<string, string> = {
-    'gn': 'Gênesis', 'ex': 'Êxodo', 'lv': 'Levítico', 'nm': 'Números', 'dt': 'Deuteronômio',
-    'js': 'Josué', 'jz': 'Juízes', 'rt': 'Rute', '1sm': '1 Samuel', '2sm': '2 Samuel',
-    '1rs': '1 Reis', '2rs': '2 Reis', '1cr': '1 Crônicas', '2cr': '2 Crônicas',
-    'ed': 'Esdras', 'ne': 'Neemias', 'et': 'Ester', 'jó': 'Jó', 'sl': 'Salmos',
-    'pv': 'Provérbios', 'ec': 'Eclesiastes', 'ct': 'Cantares', 'is': 'Isaías',
-    'jr': 'Jeremias', 'lm': 'Lamentações', 'ez': 'Ezequiel', 'dn': 'Daniel',
-    'os': 'Oséias', 'jl': 'Joel', 'am': 'Amós', 'ob': 'Obadias', 'jn': 'Jonas',
-    'mq': 'Miquéias', 'na': 'Naum', 'hc': 'Habacuque', 'sf': 'Sofonias',
-    'ag': 'Ageu', 'zc': 'Zacarias', 'ml': 'Malaquias',
-    'mt': 'Mateus', 'mc': 'Marcos', 'lc': 'Lucas', 'jo': 'João',
-    'at': 'Atos', 'rm': 'Romanos', '1co': '1 Coríntios', '2co': '2 Coríntios',
-    'gl': 'Gálatas', 'ef': 'Efésios', 'fp': 'Filipenses', 'cl': 'Colossenses',
-    '1ts': '1 Tessalonicenses', '2ts': '2 Tessalonicenses', '1tm': '1 Timóteo',
-    '2tm': '2 Timóteo', 'tt': 'Tito', 'fm': 'Filemom', 'hb': 'Hebreus',
-    'tg': 'Tiago', '1pe': '1 Pedro', '2pe': '2 Pedro', '1jo': '1 João',
-    '2jo': '2 João', '3jo': '3 João', 'jd': 'Judas', 'ap': 'Apocalipse',
-    'genesis': 'Gênesis', 'exodo': 'Êxodo', 'levitico': 'Levítico', 'numeros': 'Números',
-    'deuteronomio': 'Deuteronômio', 'josue': 'Josué', 'juizes': 'Juízes', 'rute': 'Rute',
-      'samuel': '1 Samuel', 'reis': '1 Reis', 'cronicas': '1 Crônicas',
-      'esdras': 'Esdras', 'neemias': 'Neemias', 'ester': 'Ester',
-      'salmos': 'Salmos', 'provérbios': 'Provérbios', 'eclesiastes': 'Eclesiastes',
-      'cantares': 'Cantares', 'isaias': 'Isaías', 'jeremias': 'Jeremias',
-      'lamentações': 'Lamentações', 'ezequiel': 'Ezequiel', 'daniel': 'Daniel',
-      'oseias': 'Oséias', 'joel': 'Joel', 'amos': 'Amós', 'obadias': 'Obadias',
-      'jonas': 'Jonas', 'miqueias': 'Miquéias', 'naum': 'Naum', 'habacuque': 'Habacuque',
-      'sofonias': 'Sofonias', 'ageu': 'Ageu', 'zacarias': 'Zacarias', 'malaquias': 'Malaquias',
-      'mateus': 'Mateus', 'marcos': 'Marcos', 'lucas': 'Lucas',
-      'atos': 'Atos', 'romanos': 'Romanos', 'coríntios': '1 Coríntios',
-      'gálatas': 'Gálatas', 'efésios': 'Efésios', 'filipenses': 'Filipenses',
-      'colossenses': 'Colossenses', 'tessalonicenses': '1 Tessalonicenses',
-      'timóteo': '1 Timóteo', 'tito': 'Tito', 'filemom': 'Filemom',
-      'hebreus': 'Hebreus', 'tiago': 'Tiago', 'pedro': '1 Pedro',
-      'judas': 'Judas', 'apocalipse': 'Apocalipse',
-  };
-  const raw = match[1].trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const book = bookMap[raw] || match[1].trim();
-  return { book, chapter: parseInt(match[2]), verse: parseInt(match[3]) };
+const BOOK_NAME_TO_ID: Record<string, number> = {
+  'genesis': 1, 'gênesis': 1, 'gn': 1,
+  'exodo': 2, 'êxodo': 2, 'ex': 2,
+  'levitico': 3, 'levítico': 3, 'lv': 3,
+  'numeros': 4, 'números': 4, 'nm': 4,
+  'deuteronomio': 5, 'deuteronômio': 5, 'dt': 5,
+  'josue': 6, 'josué': 6, 'js': 6,
+  'juizes': 7, 'juízes': 7, 'jz': 7,
+  'rute': 8, 'rt': 8,
+  '1 samuel': 9, '1sm': 9,
+  '2 samuel': 10, '2sm': 10,
+  '1 reis': 11, '1rs': 11,
+  '2 reis': 12, '2rs': 12,
+  '1 cronicas': 13, '1 crônicas': 13, '1cr': 13,
+  '2 cronicas': 14, '2 crônicas': 14, '2cr': 14,
+  'esdras': 15, 'ed': 15,
+  'neemias': 16, 'ne': 16,
+  'ester': 17, 'et': 17,
+  'jó': 18,
+  'salmos': 19, 'sl': 19,
+  'proverbios': 20, 'provérbios': 20, 'pv': 20,
+  'eclesiastes': 21, 'ec': 21,
+  'cantares': 22, 'ct': 22,
+  'isaias': 23, 'isaías': 23, 'is': 23,
+  'jeremias': 24, 'jr': 24,
+  'lamentacoes': 25, 'lamentações': 25, 'lm': 25,
+  'ezequiel': 26, 'ez': 26,
+  'daniel': 27, 'dn': 27,
+  'oseias': 28, 'oséias': 28, 'os': 28,
+  'joel': 29, 'jl': 29,
+  'amos': 30, 'amós': 30, 'am': 30,
+  'obadias': 31, 'ob': 31,
+  'jonas': 32, 'jn': 32,
+  'miqueias': 33, 'miquéias': 33, 'mq': 33,
+  'naum': 34, 'na': 34,
+  'habacuque': 35, 'hc': 35,
+  'sofonias': 36, 'sf': 36,
+  'ageu': 37, 'ag': 37,
+  'zacarias': 38, 'zc': 38,
+  'malaquias': 39, 'ml': 39,
+  'mateus': 40, 'mt': 40,
+  'marcos': 41, 'mc': 41,
+  'lucas': 42, 'lc': 42,
+  'joao': 43, 'joão': 43, 'jo': 43,
+  'atos': 44, 'at': 44,
+  'romanos': 45, 'rm': 45,
+  '1 corintios': 46, '1 coríntios': 46, '1co': 46,
+  '2 corintios': 47, '2 coríntios': 47, '2co': 47,
+  'galatas': 48, 'gálatas': 48, 'gl': 48,
+  'efesios': 49, 'efésios': 49, 'ef': 49,
+  'filipenses': 50, 'fp': 50,
+  'colossenses': 51, 'cl': 51,
+  '1 tessalonicenses': 52, '1ts': 52,
+  '2 tessalonicenses': 53, '2ts': 53,
+  '1 timoteo': 54, '1 timóteo': 54, '1tm': 54,
+  '2 timoteo': 55, '2 timóteo': 55, '2tm': 55,
+  'tito': 56, 'tt': 56,
+  'filemom': 57, 'fm': 57,
+  'hebreus': 58, 'hb': 58,
+  'tiago': 59, 'tg': 59,
+  '1 pedro': 60, '1pe': 60,
+  '2 pedro': 61, '2pe': 61,
+  '1 joao': 62, '1 joão': 62, '1jo': 62,
+  '2 joao': 63, '2 joão': 63, '2jo': 63,
+  '3 joao': 64, '3 joão': 64, '3jo': 64,
+  'judas': 65, 'jd': 65,
+  'apocalipse': 66, 'ap': 66,
+};
+
+const resolveBookId = (input: string): number | null => {
+  const trimmed = input.trim().toLowerCase();
+  if (BOOK_NAME_TO_ID[trimmed] !== undefined) return BOOK_NAME_TO_ID[trimmed];
+  const normalized = trimmed.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return BOOK_NAME_TO_ID[normalized] ?? null;
+};
+
+const parseReference = (q: string): { bookId: number; chapter: number; verse?: number } | null => {
+  const trimmed = q.trim();
+  let match = trimmed.match(/^(.+?)\s+(\d+):(\d+)$/);
+  if (match) {
+    const bookId = resolveBookId(match[1]);
+    if (!bookId) return null;
+    return { bookId, chapter: parseInt(match[2]), verse: parseInt(match[3]) };
+  }
+  match = trimmed.match(/^(.+?)\s+(\d+)$/);
+  if (match) {
+    const bookId = resolveBookId(match[1]);
+    if (!bookId) return null;
+    return { bookId, chapter: parseInt(match[2]) };
+  }
+  return null;
 };
 
 export const BibleSidebar: React.FC = () => {
@@ -83,6 +135,19 @@ export const BibleSidebar: React.FC = () => {
     setPanels(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
+  const BOOK_ABBREVIATIONS: Record<number, string> = {
+    1: 'Gn', 2: 'Ex', 3: 'Lv', 4: 'Nm', 5: 'Dt', 6: 'Js', 7: 'Jz', 8: 'Rt',
+    9: '1Sm', 10: '2Sm', 11: '1Rs', 12: '2Rs', 13: '1Cr', 14: '2Cr',
+    15: 'Ed', 16: 'Ne', 17: 'Et', 18: 'Jó', 19: 'Sl', 20: 'Pv', 21: 'Ec',
+    22: 'Ct', 23: 'Is', 24: 'Jr', 25: 'Lm', 26: 'Ez', 27: 'Dn', 28: 'Os',
+    29: 'Jl', 30: 'Am', 31: 'Ob', 32: 'Jn', 33: 'Mq', 34: 'Na', 35: 'Hc',
+    36: 'Sf', 37: 'Ag', 38: 'Zc', 39: 'Ml', 40: 'Mt', 41: 'Mc', 42: 'Lc',
+    43: 'Jo', 44: 'At', 45: 'Rm', 46: '1Co', 47: '2Co', 48: 'Gl', 49: 'Ef',
+    50: 'Fp', 51: 'Cl', 52: '1Ts', 53: '2Ts', 54: '1Tm', 55: '2Tm', 56: 'Tt',
+    57: 'Fm', 58: 'Hb', 59: 'Tg', 60: '1Pe', 61: '2Pe', 62: '1Jo', 63: '2Jo',
+    64: '3Jo', 65: 'Jd', 66: 'Ap',
+  };
+
   const fetchVerse = useCallback(async (panel: VersePanel) => {
     if (!panel.query.trim()) return;
     updatePanel(panel.id, { loading: true, result: null, error: null });
@@ -92,19 +157,31 @@ export const BibleSidebar: React.FC = () => {
       if (parsed) {
         const config = getApiConfig();
         const token = getToken();
-        const url = `${config.url.replace(/\/$/, '')}/api/bible/verses?book=${encodeURIComponent(parsed.book)}&chapter=${parsed.chapter}&verse=${parsed.verse}&version=${panel.version}`;
+        const url = `${config.url.replace(/\/$/, '')}/api/bible/verses?book=${parsed.bookId}&chapter=${parsed.chapter}&version=${panel.version}`;
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
         const res = await fetch(url, { headers });
 
         if (res.ok) {
           const data = await res.json();
-          if (data && data.text) {
-            updatePanel(panel.id, {
-              result: `<p><strong>${parsed.book} ${parsed.chapter}:${parsed.verse}</strong> (${panel.version})</p><p>${data.text}</p>`,
-              loading: false
-            });
-            return;
+          if (Array.isArray(data) && data.length > 0) {
+            const abbrev = BOOK_ABBREVIATIONS[parsed.bookId] || `Livro ${parsed.bookId}`;
+            if (parsed.verse) {
+              const v = data.find((x: any) => x.verse === parsed.verse);
+              if (v) {
+                updatePanel(panel.id, {
+                  result: `<p><strong>${abbrev} ${parsed.chapter}:${parsed.verse}</strong> (${panel.version})</p><p>${v.text}</p>`,
+                  loading: false
+                });
+                return;
+              }
+            } else {
+              updatePanel(panel.id, {
+                result: `<p><strong>${abbrev} ${parsed.chapter}</strong> (${panel.version})</p><p>${data.map((v: any) => `<sup>${v.verse}</sup> ${v.text}`).join(' ')}</p>`,
+                loading: false
+              });
+              return;
+            }
           }
         }
       }
