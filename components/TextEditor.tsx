@@ -231,13 +231,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
       if (selection && selection.toString()) {
         executeCommand('createLink', url);
       } else {
-        executeCommand('insertHTML', false, `<a href="${url}" target="_blank">${url}</a>`);
+        document.execCommand('insertHTML', false, `<a href="${url}" target="_blank">${url}</a>`);
       }
     }
   };
 
   const insertHR = () => {
-    executeCommand('insertHTML', false, '<hr style="border: none; border-top: 2px solid #e2e8f0; margin: 20px 0;">');
+    document.execCommand('insertHTML', false, '<hr style="border: none; border-top: 2px solid #e2e8f0; margin: 20px 0;">');
   };
 
   const insertTable = () => {
@@ -245,7 +245,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   };
 
   const handleTableInsert = (html: string) => {
-    executeCommand('insertHTML', false, html);
+    executeCommand('insertHTML', html);
     setShowInsertTable(false);
   };
 
@@ -254,12 +254,12 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
   <p style="margin:0;">${text}</p>
   <small style="color:#92400e;">— ${reference}</small>
 </div>`;
-    executeCommand('insertHTML', false, html + '<br/>');
+    executeCommand('insertHTML', html + '<br/>');
     setShowBibleSelector(false);
   };
 
   const handleTemplateSelect = (html: string) => {
-    executeCommand('insertHTML', false, html);
+    executeCommand('insertHTML', html);
     setShowTemplatesModal(false);
   };
 
@@ -370,7 +370,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
         html = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;"><div style="background: #f0fdf4; padding: 15px; border-radius: 8px;"><strong>✅ Prós:</strong><ul style="margin: 10px 0 0 0; padding-left: 20px;"><li>Item 1</li></ul></div><div style="background: #fef2f2; padding: 15px; border-radius: 8px;"><strong>❌ Contras:</strong><ul style="margin: 10px 0 0 0; padding-left: 20px;"><li>Item 1</li></ul></div></div>`;
         break;
     }
-    if (html) executeCommand('insertHTML', false, html);
+    if (html) executeCommand('insertHTML', html);
   };
 
   const handleGenerateIllustration = async () => {
@@ -787,7 +787,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                                     <button onClick={() => {
                                       const text = getSelectedText();
                                       if (!text) return alert("Selecione um texto");
-                                      executeCommand('insertHTML', false, `<h2>Introdução</h2><p>${text.split('.').slice(0, 2).join('.')}.</p><h2>Desenvolvimento</h2><p>Seu conteúdo aqui</p><h2>Conclusão</h2><p>Sua conclusão aqui</p>`);
+                                      executeCommand('insertHTML', `<h2>Introdução</h2><p>${text.split('.').slice(0, 2).join('.')}.</p><h2>Desenvolvimento</h2><p>Seu conteúdo aqui</p><h2>Conclusão</h2><p>Sua conclusão aqui</p>`);
                                     }} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                         <Link2 className="w-4 h-4" /> Criar Estrutura
                                     </button>
@@ -911,7 +911,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
                   <p className="w-full text-xs text-slate-400 mb-1">Cor do Texto:</p>
                   {['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'].map(c => (
-                    <button key={c} onMouseDown={e => { e.preventDefault(); setTextColor(c); }} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
+                    <button key={c} onClick={() => setTextColor(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
@@ -923,7 +923,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-wrap gap-1 p-2 bg-white dark:bg-slate-700 shadow-xl rounded-lg z-30 w-40">
                   <p className="w-full text-xs text-slate-400 mb-1">Fundo:</p>
                   {['#ffffff', '#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#f5d0fe', '#f0fdf4', '#fef2f2'].map(c => (
-                    <button key={c} onMouseDown={e => { e.preventDefault(); setHighlight(c); }} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
+                    <button key={c} onClick={() => setHighlight(c)} className="w-6 h-6 rounded border border-slate-300 hover:scale-110 transition-transform" style={{backgroundColor: c}} />
                   ))}
                 </div>
               </div>
@@ -951,16 +951,16 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               </button>
               <div className="w-px h-4 bg-slate-300 mx-1"></div>
               <span className="text-xs text-slate-400 mr-1">Modelos Rápidos:</span>
-              <button onMouseDown={e => { e.preventDefault(); insertTemplate('versiculo'); }} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
-              <button onMouseDown={e => { e.preventDefault(); insertTemplate('destaque'); }} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
-              <button onMouseDown={e => { e.preventDefault(); insertTemplate('alert'); }} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
-              <button onMouseDown={e => { e.preventDefault(); insertTemplate('passo'); }} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
-              <button onMouseDown={e => { e.preventDefault(); insertTemplate('comparacao'); }} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
-              <button onMouseDown={e => { e.preventDefault(); insertEmoji(); }} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
+              <button onClick={() => insertTemplate('versiculo')} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
+              <button onClick={() => insertTemplate('destaque')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
+              <button onClick={() => insertTemplate('alert')} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
+              <button onClick={() => insertTemplate('passo')} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
+              <button onClick={() => insertTemplate('comparacao')} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
+              <button onClick={insertEmoji} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
               <div className="w-px h-4 bg-slate-300 mx-2"></div>
               <span className="text-xs text-slate-400 mr-1">Limpar:</span>
-              <button onMouseDown={e => { e.preventDefault(); cleanPastedText(); }} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
-              <button onMouseDown={e => { e.preventDefault(); cleanAllFormatting(); }} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
+              <button onClick={cleanPastedText} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
+              <button onClick={cleanAllFormatting} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
             </div>
 
             {markdownMode ? (
@@ -1031,7 +1031,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 };
 
 const ToolbarButton: React.FC<{ onClick: () => void; icon: React.ReactNode; title: string }> = ({ onClick, icon, title }) => (
-  <button onMouseDown={e => { e.preventDefault(); onClick(); }} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
+  <button onClick={onClick} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
     {icon}
   </button>
 );

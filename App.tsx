@@ -7,7 +7,7 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { BibleSidebar } from './components/BibleSidebar';
 import { ImportTexts } from './components/ImportTexts';
 import { TextEntry, ViewState, Collection, ApiConfig } from './types';
-import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveApiConfig, getApiConfig, initStorage, deleteTextEntry } from './services/storageService';
+import { saveTextEntry, loadTexts, saveCollection, loadCollections, saveApiConfig, getApiConfig, initStorage, deleteTextEntry, setToken } from './services/storageService';
 import { Book, PenTool, LogOut, BarChart2, FolderPlus, Sun, Moon, Settings, X, Save, PlusCircle, Loader2, HardDriveDownload, Wifi, WifiOff, Palette, Bell, Upload, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -189,10 +189,17 @@ const App: React.FC = () => {
       setShowSettings(false);
   };
 
+  const handleLogout = () => {
+    setToken(null);
+    const cfg = getApiConfig();
+    saveApiConfig({ ...cfg, email: '', password: '' });
+    setViewState(ViewState.LOGIN);
+  };
+
   const handleNavClick = (view: ViewState) => {
       setViewState(view);
       if (view === ViewState.EDITOR) {
-          setEntryToEdit(null); // Reset edit mode when clicking "Escrever" manually
+          setEntryToEdit(null);
       }
   };
 
@@ -307,7 +314,7 @@ const App: React.FC = () => {
                         <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <div className="w-px h-4 sm:h-5 bg-slate-300/50 dark:bg-slate-600/50 mx-0.5 hidden xs:inline"></div>
-                    <button onClick={() => setViewState(ViewState.LOGIN)} className="p-1.5 sm:p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
+                    <button onClick={handleLogout} className="p-1.5 sm:p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all duration-200 active:scale-90">
                         <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
