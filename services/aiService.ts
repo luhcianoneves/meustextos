@@ -42,10 +42,11 @@ const createGeminiProvider = (): AIProvider => {
   const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   const postAI = async (contents: any, config?: any) => {
+    const contentsArray = Array.isArray(contents) ? contents : [contents];
     const res = await fetch(`${baseUrl}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents, ...config })
+      body: JSON.stringify({ contents: contentsArray, ...config })
     });
     const data = await res.json();
     return data;
@@ -53,17 +54,40 @@ const createGeminiProvider = (): AIProvider => {
 
   return {
     processTextEntry: async (title, body) => {
-      const data = await postAI({
-        parts: [{ text: `Analise o texto. 1) Corrija título e corpo (preserve HTML). 2) Gere 5 tags. 3) Resumo em 2 frases. 4) Identifique citações bíblicas. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}. Título: ${title}. Corpo: ${body}` }]
-      }, {
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 4000,
-          responseMimeType: "application/json"
+      try {
+        const data = await postAI({
+          parts: [{ text: `Analise o texto. 1) Corrija título e corpo (preserve HTML). 2) Gere 5 tags. 3) Resumo em 2 frases. 4) Identifique citações bíblicas. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}. Título: ${title}. Corpo: ${body}` }]
+        }, {
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 4000,
+            responseMimeType: "application/json"
+          }
+        });
+        
+        if (data.error) {
+          throw new Error(data.error.message || 'Erro na API do Gemini');
         }
-      });
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-      return JSON.parse(text);
+
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        const parsed = JSON.parse(text);
+        return {
+          correctedTitle: parsed.correctedTitle || title,
+          correctedBody: parsed.correctedBody || body,
+          summary: parsed.summary || (body.replace(/<[^>]*>/g, '').substring(0, 150) + '...'),
+          tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+          bibleCitations: Array.isArray(parsed.bibleCitations) ? parsed.bibleCitations : []
+        };
+      } catch (e) {
+        console.error("processTextEntry Gemini error:", e);
+        return {
+          correctedTitle: title,
+          correctedBody: body,
+          summary: body.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
+          tags: [],
+          bibleCitations: []
+        };
+      }
     },
 
     generateIllustration: async (content) => {
@@ -88,7 +112,9 @@ const createGeminiProvider = (): AIProvider => {
       const data = await postAI({
         parts: [{ text: `Crie 5-7 slides para: ${content}. JSON: [{title, points: []}]` }]
       }, {
-        responseMimeType: "application/json"
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
       });
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
       return JSON.parse(text);
@@ -125,7 +151,11 @@ const createGeminiProvider = (): AIProvider => {
     suggestTitles: async (text) => {
       const data = await postAI({
         parts: [{ text: `Sugira 5 títulos: ${text}` }]
-      }, { responseMimeType: "application/json" });
+      }, {
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      });
       const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
       return JSON.parse(result);
     },
@@ -176,13 +206,20 @@ const createOpenRouterProvider = (apiKey: string, model: string): AIProvider => 
           `Analise: Título: ${title}. Corpo: ${body}. Retorne JSON: {correctedTitle, correctedBody, summary, tags: [], bibleCitations: [{reference, text}]}`,
           { response_format: { type: 'json_object' } }
         );
-        return JSON.parse(response);
+        const parsed = JSON.parse(response);
+        return {
+          correctedTitle: parsed.correctedTitle || title,
+          correctedBody: parsed.correctedBody || body,
+          summary: parsed.summary || (body.replace(/<[^>]*>/g, '').substring(0, 150) + '...'),
+          tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+          bibleCitations: Array.isArray(parsed.bibleCitations) ? parsed.bibleCitations : []
+        };
       } catch (e) {
         console.error("processTextEntry error:", e);
         return {
           correctedTitle: title,
           correctedBody: body,
-          summary: body.substring(0, 100) + '...',
+          summary: body.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
           tags: [],
           bibleCitations: []
         };

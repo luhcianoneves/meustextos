@@ -67,17 +67,25 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    entries.forEach(entry => entry.tags.forEach(tag => tags.add(tag)));
+    entries.forEach(entry => {
+      if (entry.tags && Array.isArray(entry.tags)) {
+        entry.tags.forEach(tag => tags.add(tag));
+      }
+    });
     return Array.from(tags).sort();
   }, [entries]);
 
 const filteredEntries = useMemo(() => {
     return entries.filter(entry => {
+      const correctedTitle = entry.correctedTitle || entry.originalTitle || '';
+      const correctedBody = entry.correctedBody || entry.originalBody || '';
+      const tags = Array.isArray(entry.tags) ? entry.tags : [];
+
       const matchesTerm = searchTerm === '' || 
-        entry.correctedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.correctedBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesTag = selectedTag === '' || entry.tags.includes(selectedTag);
+        correctedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        correctedBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesTag = selectedTag === '' || tags.includes(selectedTag);
       const matchesCollection = selectedCollection === '' || entry.collectionId === selectedCollection;
       const matchesFav = onlyFavorites ? entry.isFavorite : true;
       
@@ -87,11 +95,13 @@ const filteredEntries = useMemo(() => {
  
       return matchesTerm && matchesTag && matchesCollection && matchesFav && matchesDateFrom && matchesDateTo;
     }).sort((a, b) => {
+      const titleA = a.correctedTitle || a.originalTitle || '';
+      const titleB = b.correctedTitle || b.originalTitle || '';
       switch(sortBy) {
         case 'date-desc': return new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime();
         case 'date-asc': return new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime();
-        case 'title-asc': return a.correctedTitle.localeCompare(b.correctedTitle);
-        case 'title-desc': return b.correctedTitle.localeCompare(a.correctedTitle);
+        case 'title-asc': return titleA.localeCompare(titleB);
+        case 'title-desc': return titleB.localeCompare(titleA);
         case 'favorites': return (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0);
         default: return 0;
       }
@@ -142,14 +152,14 @@ const filteredEntries = useMemo(() => {
     
     // Add content
     tempContainer.innerHTML = `
-      <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">${entry.correctedTitle}</h1>
+      <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">${entry.correctedTitle || entry.originalTitle || ''}</h1>
       <p style="color: #666; font-size: 12px; margin-bottom: 20px;">
          Luciano's Scribe • ${new Date(entry.creationDate).toLocaleDateString('pt-BR')}
          ${entry.summary ? '<br>' + entry.summary : ''}
       </p>
       <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 30px;" />
       <div class="rich-content" style="font-size: 14px; line-height: 1.6; color: #1a1a1a;">
-         ${entry.correctedBody}
+         ${entry.correctedBody || entry.originalBody || ''}
       </div>
     `;
     
@@ -183,7 +193,8 @@ const filteredEntries = useMemo(() => {
             heightLeft -= pdfHeight;
         }
 
-        pdf.save(`${entry.correctedTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
+        const pdfName = (entry.correctedTitle || entry.originalTitle || 'texto').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        pdf.save(`${pdfName}.pdf`);
     } catch (err) {
         console.error("PDF Export Error:", err);
         alert("Erro ao gerar PDF. Tente novamente.");
@@ -194,7 +205,7 @@ const filteredEntries = useMemo(() => {
 
   const handleShare = (entry: TextEntry) => {
     const shareData = {
-        title: entry.correctedTitle,
+        title: entry.correctedTitle || entry.originalTitle || 'Texto',
         text: entry.summary || "Confira este texto no Luciano's Scribe",
         url: window.location.href 
     };
@@ -235,9 +246,11 @@ const filteredEntries = useMemo(() => {
   const getCollectionName = (id?: string) => collections.find(c => c.id === id)?.name;
 
   const getRelatedTexts = (currentEntry: TextEntry) => {
+      const currentTags = Array.isArray(currentEntry.tags) ? currentEntry.tags : [];
       return entries.filter(e => 
           e.id !== currentEntry.id && 
-          e.tags.some(t => currentEntry.tags.includes(t))
+          Array.isArray(e.tags) &&
+          e.tags.some(t => currentTags.includes(t))
       ).slice(0, 3);
   };
 
@@ -358,7 +371,7 @@ const filteredEntries = useMemo(() => {
       {/* Bento Grid Results */}
       <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-auto' : 'grid-cols-1'}`}>
         {filteredEntries.map((entry, index) => {
-            const isLarge = entry.correctedBody.length > 1500 || entry.isFavorite;
+            const isLarge = (entry.correctedBody || '').length > 1500 || entry.isFavorite;
             return (
             <div key={entry.id} className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isLarge && viewMode === 'grid' ? 'md:row-span-2' : ''}`}>
                 <div 
@@ -377,11 +390,11 @@ const filteredEntries = useMemo(() => {
                                     </span>
                                 )}
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{entry.correctedTitle}</h3>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{entry.correctedTitle || entry.originalTitle}</h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{entry.summary || "Sem resumo disponível."}</p>
                             
                             <div className="flex gap-2 mt-3">
-                                {entry.tags.slice(0, 3).map(tag => (
+                                {Array.isArray(entry.tags) && entry.tags.slice(0, 3).map(tag => (
                                     <span key={tag} className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600">#{tag}</span>
                                 ))}
                             </div>
@@ -404,7 +417,7 @@ const filteredEntries = useMemo(() => {
                         {/* Action Bar */}
                         <div className="flex flex-wrap gap-2 justify-between items-center mb-6 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
                             <div className="flex gap-3">
-                                <button onClick={() => speakText(entry.correctedBody)} className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600">
+                                <button onClick={() => speakText(entry.correctedBody || entry.originalBody || '')} className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600">
                                     <Volume2 className="w-4 h-4"/> Ouvir
                                 </button>
                                 <button onClick={() => handleGenerateSlides(entry)} className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600">
@@ -420,7 +433,7 @@ const filteredEntries = useMemo(() => {
                         </div>
 
                         {/* Body */}
-                        <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content mb-8 text-black dark:text-slate-200" dangerouslySetInnerHTML={{ __html: entry.correctedBody }} />
+                        <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content mb-8 text-black dark:text-slate-200" dangerouslySetInnerHTML={{ __html: entry.correctedBody || entry.originalBody || '' }} />
 
                         {/* Cross Referencing */}
                         {getRelatedTexts(entry).length > 0 && (
@@ -431,8 +444,14 @@ const filteredEntries = useMemo(() => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {getRelatedTexts(entry).map(rel => (
                                         <div key={rel.id} onClick={() => setExpandedId(rel.id)} className="cursor-pointer p-3 bg-white dark:bg-slate-800 rounded border border-indigo-100 dark:border-slate-700 hover:shadow-sm">
-                                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle}</p>
-                                            <p className="text-xs text-slate-500">{new Date(rel.creationDate).toLocaleDateString()} • {rel.tags.filter(t => entry.tags.includes(t)).join(', ')}</p>
+                                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle || rel.originalTitle}</p>
+                                            <p className="text-xs text-slate-500">
+                                              {new Date(rel.creationDate).toLocaleDateString()} • {
+                                                (Array.isArray(rel.tags) && Array.isArray(entry.tags))
+                                                  ? rel.tags.filter(t => entry.tags.includes(t)).join(', ')
+                                                  : ''
+                                              }
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
@@ -440,7 +459,7 @@ const filteredEntries = useMemo(() => {
                         )}
 
                         {/* Bible Citations */}
-                        {entry.bibleCitations?.length > 0 && (
+                        {Array.isArray(entry.bibleCitations) && entry.bibleCitations.length > 0 && (
                              <div className="bg-amber-50 dark:bg-slate-900 border border-amber-100 dark:border-slate-700 rounded-xl p-6">
                                 <h4 className="font-bold text-amber-800 dark:text-amber-500 flex items-center gap-2 mb-4"><BookMarked className="w-4 h-4"/> Referências Bíblicas</h4>
                                 <div className="grid gap-4">

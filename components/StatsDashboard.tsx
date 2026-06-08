@@ -12,7 +12,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
   // Calculate total words
   const totalWords = entries.reduce((acc, entry) => {
     const div = document.createElement('div');
-    div.innerHTML = entry.correctedBody;
+    div.innerHTML = entry.correctedBody || entry.originalBody || '';
     const text = div.textContent || div.innerText || "";
     return acc + text.trim().split(/\s+/).length;
   }, 0);
@@ -20,9 +20,11 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
   // Tag frequency
   const tagCounts: Record<string, number> = {};
   entries.forEach(entry => {
-    entry.tags.forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-    });
+    if (entry.tags && Array.isArray(entry.tags)) {
+      entry.tags.forEach(tag => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
   });
   
   const sortedTags = Object.entries(tagCounts)
@@ -49,7 +51,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
           nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#6366f1' }); // Indigo
 
           // Find connected texts (Moons)
-          const relatedTexts = entries.filter(e => e.tags.includes(tag)).slice(0, 4);
+          const relatedTexts = entries.filter(e => Array.isArray(e.tags) && e.tags.includes(tag)).slice(0, 4);
           relatedTexts.forEach((txt, j) => {
                const moonAngle = (j / relatedTexts.length) * 2 * Math.PI;
                const moonR = 50;
@@ -57,7 +59,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
                const my = py + Math.sin(moonAngle) * moonR;
                
                // Only add if not exists (texts can belong to multiple tags, simple dedupe by ID would require complex layouting, allowing overlap for this simple viz)
-               nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle, x: mx, y: my, r: 6, color: '#94a3b8' });
+               nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle || txt.originalTitle || '', x: mx, y: my, r: 6, color: '#94a3b8' });
                links.push({ x1: px, y1: py, x2: mx, y2: my });
           });
           
