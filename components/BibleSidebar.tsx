@@ -201,9 +201,9 @@ export const BibleSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800">
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-indigo-50 dark:bg-slate-800">
-        <h3 className="font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-2">
+    <div className="w-full h-full flex flex-col bg-white dark:bg-slate-900 border-l border-[#DEE3EA] dark:border-slate-800">
+      <div className="p-4 border-b border-[#DEE3EA] dark:border-slate-800 bg-[#FDEEE3] dark:bg-slate-800">
+        <h3 className="font-display font-semibold text-[#B8431A] dark:text-amber-400 flex items-center gap-2">
           <BookOpen className="w-5 h-5" />
           Bíblia Integrada
         </h3>
@@ -211,10 +211,10 @@ export const BibleSidebar: React.FC = () => {
 
       <div className="p-3 flex-1 overflow-y-auto space-y-3">
         {panels.map(panel => (
-          <div key={panel.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+          <div key={panel.id} className="bg-[#F8FAFD] dark:bg-slate-800/50 rounded-md border border-[#DEE3EA] dark:border-slate-700 p-3">
             <div className="flex items-center gap-2 mb-2">
               <select value={panel.version} onChange={e => updatePanel(panel.id, { version: e.target.value })}
-                className="flex-1 p-1.5 border border-slate-300 dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none">
+                className="flex-1 p-1.5 border border-[#DEE3EA] dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none">
                 {VERSION_OPTIONS.map(v => <option key={v.value} value={v.value}>{v.value}</option>)}
               </select>
               {panels.length > 1 && (
@@ -227,21 +227,21 @@ export const BibleSidebar: React.FC = () => {
             <div className="flex gap-1">
               <input type="text" value={panel.query} onChange={e => updatePanel(panel.id, { query: e.target.value })}
                 placeholder="Ex: João 3:16" onKeyDown={e => e.key === 'Enter' && fetchVerse(panel)}
-                className="flex-1 p-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none" />
+                className="flex-1 p-1.5 text-xs border border-[#DEE3EA] dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none" />
               <button onClick={() => fetchVerse(panel)} disabled={panel.loading}
-                className="p-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50">
+                className="p-1.5 bg-[#3B6FE0] text-white rounded hover:bg-[#2C5AC7] disabled:opacity-50">
                 {panel.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
               </button>
             </div>
 
             {panel.result && (
-              <div className="mt-2 relative group bg-amber-50 dark:bg-slate-800 border border-amber-100 dark:border-slate-700 p-3 rounded-lg">
+              <div className="mt-2 relative group bg-[#FDEEE3] dark:bg-slate-800 border border-[#F6D4B8] dark:border-slate-700 p-3 rounded-md">
                 <button onClick={() => copyToClipboard(panel.result!)}
-                  className="absolute top-1 right-1 p-1 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 p-1 text-[#B8431A] dark:text-amber-400 hover:bg-[#F6D4B8] dark:hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Copiar">
                   <Copy className="w-3.5 h-3.5" />
                 </button>
-                <div className="prose prose-xs text-slate-800 dark:text-slate-300 text-sm" dangerouslySetInnerHTML={{ __html: panel.result }} />
+                <div className="serif-font prose prose-xs text-slate-800 dark:text-slate-300 text-sm" dangerouslySetInnerHTML={{ __html: panel.result }} />
               </div>
             )}
 
@@ -252,7 +252,7 @@ export const BibleSidebar: React.FC = () => {
         ))}
 
         <button onClick={addPanel}
-          className="w-full py-2 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-500 hover:text-indigo-600 hover:border-indigo-400 transition-colors flex items-center justify-center gap-1">
+          className="w-full py-2 border-2 border-dashed border-[#DEE3EA] dark:border-slate-600 rounded-md text-sm text-slate-500 hover:text-[#3B6FE0] hover:border-[#3B6FE0] transition-colors flex items-center justify-center gap-1">
           <Plus className="w-4 h-4" /> Adicionar Versão
         </button>
       </div>
