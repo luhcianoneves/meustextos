@@ -566,10 +566,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 
   return (
     <div className={`max-w-4xl mx-auto space-y-6 ${focusMode ? 'fixed inset-0 z-50 bg-white p-8 overflow-y-auto' : ''}`}>
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <Sparkles className="text-indigo-500 w-6 h-6" />
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#DEE3EA] dark:border-slate-700 p-5 sm:p-6 md:p-8 transition-colors">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <h2 className="font-display text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="text-[#3B6FE0] w-5 h-5 sm:w-6 sm:h-6" />
             {initialEntry ? 'Editar Texto' : 'Novo Texto'}
           </h2>
           
@@ -582,7 +582,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
           {focusMode && (
             <button 
                 onClick={() => setFocusMode(false)}
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600"
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#F0F2F5] text-slate-600"
             >
                 <EyeOff className="w-3 h-3" /> Sair Focus
             </button>
@@ -591,13 +591,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
           {/* Version History Dropdown */}
           {previousVersions.length > 0 && (
               <div className="relative group">
-                  <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-500">
+                  <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-[#3B6FE0]">
                       <Clock className="w-3 h-3" /> Histórico ({previousVersions.length})
                   </button>
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 hidden group-hover:block z-10 p-2">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 hidden group-hover:block z-10 p-2">
                       <p className="text-xs font-bold text-slate-400 p-2">Últimos rascunhos:</p>
                       {previousVersions.map((v, i) => (
-                          <div key={i} onClick={() => restoreVersion(v)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer rounded text-xs text-slate-700 dark:text-slate-200 flex justify-between">
+                          <div key={i} onClick={() => restoreVersion(v)} className="p-2 hover:bg-[#F0F2F5] dark:hover:bg-slate-600 cursor-pointer rounded text-xs text-slate-700 dark:text-slate-200 flex justify-between">
                              <span>{new Date(v.timestamp).toLocaleTimeString()}</span>
                              <RotateCcw className="w-3 h-3"/>
                           </div>
@@ -608,7 +608,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <div className="col-span-1">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                 <Calendar className="w-4 h-4" /> Data
@@ -617,7 +617,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-2 bg-[#F8FAFD] dark:bg-slate-900 border border-[#DEE3EA] dark:border-slate-700 rounded-md text-slate-900 dark:text-white focus:ring-2 focus:ring-[#3B6FE0] outline-none"
               />
             </div>
             
@@ -628,7 +628,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 <select 
                     value={selectedCollection}
                     onChange={(e) => setSelectedCollection(e.target.value)}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white outline-none"
+                    className="w-full px-4 py-2 bg-[#F8FAFD] dark:bg-slate-900 border border-[#DEE3EA] dark:border-slate-700 rounded-md text-slate-900 dark:text-white outline-none"
                 >
                     <option value="">Sem Série</option>
                     {collections.map(c => (
@@ -637,7 +637,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 </select>
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-2 sm:col-span-2">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                 <Type className="w-4 h-4" /> Título
               </label>
@@ -646,22 +646,22 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Reflexão sobre Salmos 23..."
-                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+                className="font-display w-full px-4 py-2 bg-[#F8FAFD] dark:bg-slate-900 border border-[#DEE3EA] dark:border-slate-700 rounded-md text-slate-900 dark:text-white focus:ring-2 focus:ring-[#3B6FE0] outline-none font-medium"
               />
             </div>
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2 flex-wrap">
                 <AlignLeft className="w-4 h-4" /> Conteúdo
                 <span className="text-xs text-slate-400 ml-2">| {wordCount} palavras | {charCount} caracteres</span>
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     {/* Modo Focus */}
                     <button 
                         onClick={() => setFocusMode(!focusMode)}
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${focusMode ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${focusMode ? 'bg-[#E8EFFC] text-[#2C5AC7]' : 'bg-[#F0F2F5] text-slate-600 hover:bg-slate-200'}`}
                         title="Modo Focus (escrita sem distrações)"
                     >
                         {focusMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -678,14 +678,14 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                             Exportar
                         </button>
                         {showExportMenu && (
-                            <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-20">
-                                <button onClick={() => { exportToPDF(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                            <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 z-20">
+                                <button onClick={() => { exportToPDF(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2">
                                     <Download className="w-4 h-4" /> PDF
                                 </button>
-                                <button onClick={() => { exportToWord(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                                <button onClick={() => { exportToWord(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2">
                                     <File className="w-4 h-4" /> Word
                                 </button>
-                                <button onClick={() => { exportToTxt(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2">
+                                <button onClick={() => { exportToTxt(); setShowExportMenu(false); }} className="w-full px-4 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2">
                                     <FileText className="w-4 h-4" /> TXT
                                 </button>
                             </div>
@@ -706,7 +706,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isTranscribingFile}
-                        className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#E8EFFC] text-[#2C5AC7] hover:bg-[#DCE6FA] transition-colors"
                         title="Importar áudio (MP3/WAV)"
                     >
                         {isTranscribingFile ? <Loader2 className="w-3 h-3 animate-spin"/> : <Upload className="w-3 h-3" />}
@@ -722,7 +722,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 
                     <button 
                         onClick={toggleListening}
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${isListening ? 'bg-red-100 text-red-600 animate-pulse border border-red-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${isListening ? 'bg-red-100 text-red-600 animate-pulse border border-red-200' : 'bg-[#F0F2F5] text-slate-600 hover:bg-slate-200'}`}
                     >
                         {isListening ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
                         {isListening ? 'Parar' : 'Ditar'}
@@ -732,27 +732,27 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                     <div className="relative">
                         <button 
                             onClick={() => setShowAITools(!showAITools)}
-                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${showAITools ? 'bg-violet-100 text-violet-700' : 'bg-violet-100 text-violet-700 hover:bg-violet-200'}`}
+                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-violet-100 text-violet-700 hover:bg-violet-200`}
                         >
                             <AISparkle className="w-3 h-3" />
                             IA Tools {aiLoading && <Loader2 className="w-3 h-3 animate-spin"/>}
                         </button>
                         {showAITools && (
-                            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-20 p-2 max-h-96 overflow-y-auto">
+                            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 z-20 p-2 max-h-96 overflow-y-auto">
                                 <p className="text-xs font-bold text-slate-400 px-2 mb-2">PROCESSAMENTO DE TEXTO</p>
-                                <button onClick={handleCorrectGrammar} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                <button onClick={handleCorrectGrammar} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                     <CheckCircle className="w-4 h-4" /> Corrigir Gramática
                                 </button>
-                                <button onClick={handleSummarize} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                <button onClick={handleSummarize} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                     <FileText className="w-4 h-4" /> Resumir Texto
                                 </button>
-                                <button onClick={handleSuggestTitles} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                <button onClick={handleSuggestTitles} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                     <BookOpen className="w-4 h-4" /> Sugerir Títulos
                                 </button>
-                                <button onClick={handleGenerateIllustration} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                <button onClick={handleGenerateIllustration} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                     <Lightbulb className="w-4 h-4" /> Gerar Ilustração
                                 </button>
-                                <div className="border-t border-slate-200 dark:border-slate-600 mt-2 pt-2">
+                                <div className="border-t border-[#DEE3EA] dark:border-slate-600 mt-2 pt-2">
                                     <p className="text-xs font-bold text-slate-400 px-2 mb-1">REESCRITA</p>
                                     <select value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)} className="w-full px-2 py-1 text-sm mb-1 rounded">
                                         <option value="formal">Formal</option>
@@ -763,11 +763,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                                         <option value="acadêmico">Acadêmico</option>
                                         <option value="devocional">Devocional</option>
                                     </select>
-                                    <button onClick={handleRewrite} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    <button onClick={handleRewrite} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                         <FileEdit className="w-4 h-4" /> Reescrever Texto
                                     </button>
                                 </div>
-                                <div className="border-t border-slate-200 dark:border-slate-600 mt-2 pt-2">
+                                <div className="border-t border-[#DEE3EA] dark:border-slate-600 mt-2 pt-2">
                                     <p className="text-xs font-bold text-slate-400 px-2 mb-1">TRADUÇÃO</p>
                                     <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="w-full px-2 py-1 text-sm mb-1 rounded">
                                         <option value="Inglês">Inglês</option>
@@ -778,17 +778,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                                         <option value="Hebraico">Hebraico</option>
                                         <option value="Grego">Grego</option>
                                     </select>
-                                    <button onClick={handleTranslate} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    <button onClick={handleTranslate} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                         <Languages className="w-4 h-4" /> Traduzir Texto
                                     </button>
                                 </div>
-                                <div className="border-t border-slate-200 dark:border-slate-600 mt-2 pt-2">
+                                <div className="border-t border-[#DEE3EA] dark:border-slate-600 mt-2 pt-2">
                                     <p className="text-xs font-bold text-slate-400 px-2 mb-1">ESTRUTURA</p>
                                     <button onClick={() => {
                                       const text = getSelectedText();
                                       if (!text) return alert("Selecione um texto");
                                       executeCommand('insertHTML', `<h2>Introdução</h2><p>${text.split('.').slice(0, 2).join('.')}.</p><h2>Desenvolvimento</h2><p>Seu conteúdo aqui</p><h2>Conclusão</h2><p>Sua conclusão aqui</p>`);
-                                    }} className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center gap-2 rounded">
+                                    }} className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600 flex items-center gap-2 rounded">
                                         <Link2 className="w-4 h-4" /> Criar Estrutura
                                     </button>
                                 </div>
@@ -799,27 +799,27 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             </div>
             
             {suggestedTitles.length > 0 && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-100 dark:border-slate-600 z-30 p-3">
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 z-30 p-3">
                     <div className="flex justify-between items-center mb-2">
                         <p className="text-xs font-bold text-slate-400">Títulos Sugeridos</p>
                         <button onClick={() => setSuggestedTitles([])} className="text-slate-400 hover:text-slate-600">✕</button>
                     </div>
                     {suggestedTitles.map((t, i) => (
-                        <div key={i} onClick={() => { setTitle(t); setSuggestedTitles([]); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer rounded text-sm text-slate-700 dark:text-slate-200 mb-1">
+                        <div key={i} onClick={() => { setTitle(t); setSuggestedTitles([]); }} className="font-display p-2 hover:bg-[#F0F2F5] dark:hover:bg-slate-600 cursor-pointer rounded text-sm text-slate-700 dark:text-slate-200 mb-1">
                             {t}
                         </div>
                     ))}
                 </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-b-0 rounded-t-lg bg-slate-100 dark:bg-slate-800">
+            <div className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 border border-[#DEE3EA] dark:border-slate-700 border-b-0 rounded-t-lg bg-[#F0F2F5] dark:bg-slate-800 overflow-x-auto">
               {/* Undo/Redo */}
               <ToolbarButton onClick={() => executeCommand('undo')} icon={<Undo className="w-4 h-4"/>} title="Desfazer" />
               <ToolbarButton onClick={() => executeCommand('redo')} icon={<Redo className="w-4 h-4"/>} title="Refazer" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Font Selection */}
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button 
                   onClick={() => setShowFontDropdown(!showFontDropdown)}
                   className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
@@ -828,13 +828,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                   <FontIcon className="w-3 h-3" /> {selectedFont.split(',')[0]} ▼
                 </button>
                 {showFontDropdown && (
-                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-200 dark:border-slate-600 w-48 max-h-60 overflow-y-auto">
+                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 w-48 max-h-60 overflow-y-auto">
                     {fonts.map(font => (
                       <button 
                         key={font} 
                         onClick={() => setFont(font)}
                         style={{fontFamily: font}}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-600"
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600"
                       >
                         {font.split(',')[0]}
                       </button>
@@ -844,7 +844,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               </div>
 
               {/* Font Size */}
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button 
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
                   className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
@@ -852,12 +852,12 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                   <Type className="w-3 h-3" /> {selectedFontSize}px ▼
                 </button>
                 {showFontSizeDropdown && (
-                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-slate-200 dark:border-slate-600 w-20">
+                  <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 w-20">
                     {fontSizes.map(size => (
                       <button 
                         key={size} 
                         onClick={() => setFontSize(size)}
-                        className="w-full px-3 py-2 text-center text-sm hover:bg-slate-100 dark:hover:bg-slate-600"
+                        className="w-full px-3 py-2 text-center text-sm hover:bg-[#F0F2F5] dark:hover:bg-slate-600"
                       >
                         {size}
                       </button>
@@ -865,14 +865,14 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                   </div>
                 )}
               </div>
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Headings */}
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h1')} icon={<Heading1 className="w-4 h-4"/>} title="Título 1" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h2')} icon={<Heading2 className="w-4 h-4"/>} title="Título 2" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'h3')} icon={<Heading3 className="w-4 h-4"/>} title="Título 3" />
               <ToolbarButton onClick={() => executeCommand('formatBlock', 'blockquote')} icon={<Quote className="w-4 h-4"/>} title="Citação" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Text Formatting */}
               <ToolbarButton onClick={() => executeCommand('bold')} icon={<Bold className="w-4 h-4"/>} title="Negrito" />
@@ -881,19 +881,19 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               <ToolbarButton onClick={() => executeCommand('strikethrough')} icon={<Strikethrough className="w-4 h-4"/>} title="Tachado" />
               <ToolbarButton onClick={() => executeCommand('superscript')} icon={<Superscript className="w-4 h-4"/>} title="Sobrescrito" />
               <ToolbarButton onClick={() => executeCommand('subscript')} icon={<Subscript className="w-4 h-4"/>} title="Subscrito" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
               
               {/* Alignment */}
               <ToolbarButton onClick={() => executeCommand('justifyLeft')} icon={<AlignLeft className="w-4 h-4"/>} title="Esquerda" />
               <ToolbarButton onClick={() => executeCommand('justifyCenter')} icon={<AlignCenter className="w-4 h-4"/>} title="Centro" />
               <ToolbarButton onClick={() => executeCommand('justifyRight')} icon={<AlignRight className="w-4 h-4"/>} title="Direita" />
               <ToolbarButton onClick={() => executeCommand('justifyFull')} icon={<AlignJustify className="w-4 h-4"/>} title="Justificado" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Lists */}
               <ToolbarButton onClick={() => executeCommand('insertUnorderedList')} icon={<List className="w-4 h-4"/>} title="Lista" />
               <ToolbarButton onClick={() => executeCommand('insertOrderedList')} icon={<ListOrdered className="w-4 h-4"/>} title="Lista Numerada" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Media & Links */}
               <ToolbarButton onClick={insertImage} icon={<ImageIcon className="w-4 h-4"/>} title="Imagem" />
@@ -901,10 +901,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
               <ToolbarButton onClick={insertLink} icon={<Link className="w-4 h-4"/>} title="Link" />
               <ToolbarButton onClick={insertHR} icon={<Minus className="w-4 h-4"/>} title="Linha Horizontal" />
               <ToolbarButton onClick={insertTable} icon={<Palette className="w-4 h-4"/>} title="Tabela" />
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Colors */}
-              <div className="relative group">
+              <div className="relative group shrink-0">
                 <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors" title="Cor do Texto">
                   <TypeIcon className="w-4 h-4" style={{color: '#ef4444'}} />
                 </button>
@@ -916,7 +916,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                 </div>
               </div>
 
-              <div className="relative group">
+              <div className="relative group shrink-0">
                 <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors" title="Cor de Fundo">
                   <Square className="w-4 h-4" style={{color: '#fef08a'}} />
                 </button>
@@ -927,7 +927,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                   ))}
                 </div>
               </div>
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="w-px h-6 bg-[#DEE3EA] dark:bg-slate-600 mx-1 shrink-0"></div>
 
               {/* Clean Formatting */}
               <ToolbarButton onClick={cleanPastedText} icon={<Scissors className="w-4 h-4"/>} title="Limpar Formatação do Texto Selecionado" />
@@ -935,46 +935,46 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             </div>
 
             {/* Quick Templates Bar */}
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-300 dark:border-slate-700 border-t-0 bg-slate-100 dark:bg-slate-800 rounded-b-lg">
-              <span className="text-xs text-slate-400 mr-2">Ferramentas:</span>
-              <button onClick={() => setShowTemplatesModal(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 font-medium">
+            <div className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 border border-[#DEE3EA] dark:border-slate-700 border-t-0 bg-[#F0F2F5] dark:bg-slate-800 rounded-b-lg overflow-x-auto">
+              <span className="text-xs text-slate-400 mr-2 shrink-0">Ferramentas:</span>
+              <button onClick={() => setShowTemplatesModal(true)} className="shrink-0 flex items-center gap-1 px-3 py-1 text-xs bg-[#E8EFFC] text-[#2C5AC7] rounded hover:bg-[#DCE6FA] font-medium">
                 <FileDown className="w-3 h-3" /> Modelos
               </button>
-              <button onClick={() => setShowBibleSelector(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 font-medium">
+              <button onClick={() => setShowBibleSelector(true)} className="shrink-0 flex items-center gap-1 px-3 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 font-medium">
                 <BookOpen className="w-3 h-3" /> Bíblia
               </button>
-              <button onClick={() => setShowInsertTable(true)} className="flex items-center gap-1 px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 font-medium">
+              <button onClick={() => setShowInsertTable(true)} className="shrink-0 flex items-center gap-1 px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 font-medium">
                 <Grid className="w-3 h-3" /> Tabela
               </button>
-              <button onClick={toggleMarkdown} className={`flex items-center gap-1 px-3 py-1 text-xs rounded font-medium ${markdownMode ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
+              <button onClick={toggleMarkdown} className={`shrink-0 flex items-center gap-1 px-3 py-1 text-xs rounded font-medium ${markdownMode ? 'bg-[#3B6FE0] text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
                 <Code className="w-3 h-3" /> {markdownMode ? 'Visual' : 'Markdown'}
               </button>
-              <div className="w-px h-4 bg-slate-300 mx-1"></div>
-              <span className="text-xs text-slate-400 mr-1">Modelos Rápidos:</span>
-              <button onClick={() => insertTemplate('versiculo')} className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
-              <button onClick={() => insertTemplate('destaque')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
-              <button onClick={() => insertTemplate('alert')} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
-              <button onClick={() => insertTemplate('passo')} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
-              <button onClick={() => insertTemplate('comparacao')} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
-              <button onClick={insertEmoji} className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
-              <div className="w-px h-4 bg-slate-300 mx-2"></div>
-              <span className="text-xs text-slate-400 mr-1">Limpar:</span>
-              <button onClick={cleanPastedText} className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
-              <button onClick={cleanAllFormatting} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
+              <div className="w-px h-4 bg-[#DEE3EA] mx-1 shrink-0"></div>
+              <span className="text-xs text-slate-400 mr-1 shrink-0">Modelos Rápidos:</span>
+              <button onClick={() => insertTemplate('versiculo')} className="shrink-0 px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">📖 Versículo</button>
+              <button onClick={() => insertTemplate('destaque')} className="shrink-0 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">💡 Destaque</button>
+              <button onClick={() => insertTemplate('alert')} className="shrink-0 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">⚠️ Alerta</button>
+              <button onClick={() => insertTemplate('passo')} className="shrink-0 px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">📝 Passos</button>
+              <button onClick={() => insertTemplate('comparacao')} className="shrink-0 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">⚖️ Comparação</button>
+              <button onClick={insertEmoji} className="shrink-0 px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200">😀 Emoji</button>
+              <div className="w-px h-4 bg-[#DEE3EA] mx-2 shrink-0"></div>
+              <span className="text-xs text-slate-400 mr-1 shrink-0">Limpar:</span>
+              <button onClick={cleanPastedText} className="shrink-0 px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200">✂️ Texto Selecionado</button>
+              <button onClick={cleanAllFormatting} className="shrink-0 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">🧹 Todo Texto</button>
             </div>
 
             {markdownMode ? (
               <textarea
                 value={markdownText}
                 onChange={e => setMarkdownText(e.target.value)}
-                className="w-full px-8 py-8 min-h-[500px] font-mono text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-slate-100"
+                className="w-full px-4 sm:px-8 py-6 sm:py-8 min-h-[400px] sm:min-h-[500px] font-mono text-sm bg-white dark:bg-slate-900 border border-[#DEE3EA] dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-[#3B6FE0] outline-none text-slate-900 dark:text-slate-100"
                 placeholder="Escreva em Markdown..."
               />
             ) : (
               <div
                 ref={editorRef}
                 contentEditable
-                className="w-full px-8 py-8 min-h-[500px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all serif-font text-lg leading-relaxed rich-editor-content text-black dark:text-slate-100 overflow-y-auto"
+                className="w-full px-4 sm:px-8 py-6 sm:py-8 min-h-[400px] sm:min-h-[500px] bg-white dark:bg-slate-900 border border-[#DEE3EA] dark:border-slate-700 rounded-b-lg focus:ring-2 focus:ring-[#3B6FE0] outline-none transition-all serif-font text-base sm:text-lg leading-relaxed rich-editor-content text-black dark:text-slate-100 overflow-y-auto"
                 data-placeholder="Comece a escrever ou importe um áudio..."
               />
             )}
@@ -984,8 +984,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
             <button
               onClick={handleSave}
               disabled={isProcessing}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium shadow-md transition-all transform active:scale-95 ${
-                isProcessing ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold transition-all transform active:scale-95 ${
+                isProcessing ? 'bg-blue-300 cursor-not-allowed' : 'bg-[#3B6FE0] hover:bg-[#2C5AC7]'
               }`}
             >
               {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processando...</> : <><Save className="w-5 h-5" /> {initialEntry ? 'Atualizar Texto' : 'Salvar'}</>}
@@ -1031,7 +1031,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 };
 
 const ToolbarButton: React.FC<{ onClick: () => void; icon: React.ReactNode; title: string }> = ({ onClick, icon, title }) => (
-  <button onClick={onClick} title={title} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 rounded transition-colors">
+  <button onClick={onClick} title={title} className="shrink-0 p-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-[#3B6FE0] rounded transition-colors">
     {icon}
   </button>
 );
