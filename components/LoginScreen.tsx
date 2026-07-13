@@ -61,28 +61,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1B2430] via-[#233043] to-[#2C5AC7] p-12 flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptLTQtNHYyaC0ydi0yaDJ6bTggNHYyaC0ydi0yaDJ6bS04IDh2MmgtMnYtMmgyeiIvPjwvZzwvL2c+PC9zdmc+')] opacity-30"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
-            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
+            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
               <PenLine className="w-8 h-8 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white tracking-wide">Luciano's Scribe</span>
+            <span className="font-display text-2xl font-semibold text-white tracking-tight">Luciano's Scribe</span>
           </div>
 
-          <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
+          <h1 className="font-display text-4xl font-semibold text-white mb-4 leading-tight">
             Sua plataforma de<br/>
-            <span className="text-indigo-200">escrita criativa</span>
+            <span className="text-[#9DBBF5]">escrita criativa</span>
           </h1>
-          <p className="text-indigo-200 text-lg max-w-md">
+          <p className="text-[#B8CCF0] text-lg max-w-md">
             Organize seus textos, explore recursos de IA e desenvolva sua criatividade com segurança.
           </p>
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 text-indigo-200 text-sm">
+          <div className="flex items-center gap-2 text-[#B8CCF0] text-sm">
             <Sparkles className="w-4 h-4" />
             <span>Acesso seguro com criptografia</span>
           </div>
@@ -90,21 +90,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 bg-[#F3F5F8]">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="bg-indigo-600 p-2 rounded-lg">
+            <div className="bg-[#3B6FE0] p-2 rounded-lg">
               <PenLine className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-800">Luciano's Scribe</span>
+            <span className="font-display text-xl font-semibold text-slate-900">Luciano's Scribe</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 border border-[#DEE3EA]">
             <div className="text-center mb-8">
-              <div className="bg-indigo-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-7 h-7 text-indigo-600" />
+              <div className="bg-[#E8EFFC] w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-7 h-7 text-[#3B6FE0]" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-800">Bem-vindo de volta</h2>
+              <h2 className="font-display text-2xl font-semibold text-slate-900">Bem-vindo de volta</h2>
               <p className="text-slate-500 mt-2">Entre com suas credenciais para acessar</p>
             </div>
 
@@ -120,7 +120,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   <input
                     type="email"
                     id="email"
-                    className="block w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-800 placeholder:text-slate-400"
+                    className="block w-full pl-12 pr-4 py-3 bg-[#F8FAFD] border border-[#DEE3EA] rounded-md focus:ring-2 focus:ring-[#3B6FE0] focus:border-[#3B6FE0] transition-all outline-none text-slate-800 placeholder:text-slate-400"
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -141,7 +141,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
-                    className="block w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-800 placeholder:text-slate-400"
+                    className="block w-full pl-12 pr-12 py-3 bg-[#F8FAFD] border border-[#DEE3EA] rounded-md focus:ring-2 focus:ring-[#3B6FE0] focus:border-[#3B6FE0] transition-all outline-none text-slate-800 placeholder:text-slate-400"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -164,14 +164,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-4 h-4 text-[#3B6FE0] rounded border-slate-300 focus:ring-[#3B6FE0]"
                   />
                   <span className="text-sm text-slate-600">Lembrar-me</span>
                 </label>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -180,7 +180,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-semibold hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25"
+                className="w-full bg-[#3B6FE0] text-white py-3.5 rounded-md font-semibold hover:bg-[#2C5AC7] active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
