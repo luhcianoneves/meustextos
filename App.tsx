@@ -255,18 +255,18 @@ const App: React.FC = () => {
   const accentClasses = getAccentClasses();
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950">
-      {/* Glassmorphism Header */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-white/20 dark:border-slate-700/50 shadow-sm">
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-[#F3F5F8] dark:bg-slate-950">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/90 backdrop-blur border-b border-[#DEE3EA] dark:border-slate-700/50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 h-auto sm:h-16 py-2 sm:py-0 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-3">
-                <div className={`${accentBg} p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg shadow-${accent}-500/20`}>
+                <div className={`${accentBg} p-1.5 sm:p-2 rounded-lg sm:rounded-xl`}>
                     <Book className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent hidden xs:block sm:block">Luciano's Scribe</h1>
+                <h1 className="font-display text-lg sm:text-xl font-semibold tracking-tight text-slate-900 dark:text-white hidden xs:block sm:block">Luciano's Scribe</h1>
             </div>
 
-            <nav className="flex items-center gap-1 p-1 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 order-3 sm:order-2">
+            <nav className="flex items-center gap-1 p-1 rounded-lg bg-[#F0F2F5] dark:bg-slate-800/50 border border-[#DEE3EA]/70 dark:border-slate-700/50 order-3 sm:order-2">
                 {[
                     { id: ViewState.EDITOR, icon: PenTool, label: 'Escrever' },
                     { id: ViewState.LIBRARY, icon: Book, label: 'Biblioteca' },
@@ -276,9 +276,9 @@ const App: React.FC = () => {
                     <button
                         key={tab.id}
                         onClick={() => handleNavClick(tab.id as ViewState)}
-                        className={`flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                        className={`flex items-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200 active:scale-95 ${
                             viewState === tab.id 
-                            ? `bg-white dark:bg-slate-700 ${accentText} dark:${accentDarkText} shadow-md shadow-${accent}-500/10` 
+                            ? `bg-white dark:bg-slate-700 ${accentText} dark:${accentDarkText} shadow-sm` 
                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                         }`}
                     >
@@ -344,10 +344,10 @@ const App: React.FC = () => {
 
       {/* New Collection Modal */}
       {showCollectionModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm p-6 transform transition-all scale-100">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+               <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-sm p-6 transform transition-all scale-100">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2"><FolderPlus className="w-5 h-5"/> Nova Série / Estudo</h3>
+                        <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2"><FolderPlus className="w-5 h-5"/> Nova Série / Estudo</h3>
                         <button onClick={() => setShowCollectionModal(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Crie um agrupamento para organizar seus textos por tema.</p>
@@ -356,10 +356,10 @@ const App: React.FC = () => {
                         placeholder="Nome da Série (ex: Salmos)"
                         value={newCollectionName}
                         onChange={(e) => setNewCollectionName(e.target.value)}
-                        className="w-full p-2 border border-slate-300 rounded-lg mb-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        className="w-full p-2 border border-[#DEE3EA] rounded-md mb-4 text-slate-900 focus:ring-2 focus:ring-[#3B6FE0] outline-none bg-white"
                         autoFocus
                     />
-                    <button onClick={handleCreateCollection} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
+                    <button onClick={handleCreateCollection} className="w-full bg-[#3B6FE0] hover:bg-[#2C5AC7] text-white py-2 rounded-md font-semibold flex justify-center items-center gap-2">
                         <PlusCircle className="w-4 h-4"/> Criar
                     </button>
                </div>
@@ -368,15 +368,15 @@ const App: React.FC = () => {
 
       {/* Settings Modal */}
       {showSettings && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh]">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh]">
                   <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2"><Settings className="w-5 h-5"/> Configurações</h3>
+                      <h3 className="font-display text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2"><Settings className="w-5 h-5 text-[#3B6FE0]"/> Configurações</h3>
                       <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
                   </div>
                   
                    <div className="space-y-4">
-                       <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                       <div className="p-4 bg-[#F8FAFD] dark:bg-slate-900 rounded-md border border-[#DEE3EA] dark:border-slate-700">
                            <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão com Servidor Próprio</h4>
                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte ao seu servidor Node.js + PostgreSQL rodando na VPS.</p>
 
