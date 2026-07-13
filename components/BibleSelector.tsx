@@ -139,11 +139,11 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-600" /> Inserir Citação Bíblica
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+        <div className="flex justify-between items-center p-4 border-b border-[#DEE3EA] dark:border-slate-700">
+          <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-[#3B6FE0]" /> Inserir Citação Bíblica
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
         </div>
@@ -152,14 +152,14 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input type="text" placeholder="Buscar livro..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full pl-9 pr-3 py-2 border border-[#DEE3EA] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#3B6FE0]" />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Livro</label>
               <select value={selectedBook || ''} onChange={e => { setSelectedBook(Number(e.target.value)); setSelectedChapter(null); setSelectedVerse(null); setVerses([]); }}
-                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                className="w-full p-2 border border-[#DEE3EA] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
                 size={8}>
                 {filteredBooks.map(b => (
                   <option key={b.id} value={b.id}>{b.name} ({b.abbreviation})</option>
@@ -170,7 +170,7 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Capítulo</label>
               <select value={selectedChapter || ''} onChange={e => { setSelectedChapter(Number(e.target.value)); setSelectedVerse(null); }}
-                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                className="w-full p-2 border border-[#DEE3EA] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
                 size={8}>
                 {chapters.map(c => (
                   <option key={c} value={c}>{c}</option>
@@ -181,7 +181,7 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Versículo</label>
               <select value={selectedVerse || ''} onChange={e => setSelectedVerse(Number(e.target.value))}
-                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                className="w-full p-2 border border-[#DEE3EA] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
                 size={8}>
                 <option value="">Todos</option>
                 {verses.map(v => (
@@ -191,11 +191,11 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
             </div>
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center flex-wrap">
             <label className="text-xs font-semibold text-slate-500 mr-2">Versão:</label>
             {VERSIONS.map(v => (
               <button key={v} onClick={() => setSelectedVersion(v)}
-                className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${selectedVersion === v ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}`}>
+                className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${selectedVersion === v ? 'bg-[#3B6FE0] text-white' : 'bg-[#F0F2F5] dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}`}>
                 {v}
               </button>
             ))}
@@ -204,22 +204,22 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelect, onClose }) => {
           {loading && <div className="flex items-center justify-center gap-2 text-sm text-slate-500"><Loader2 className="w-4 h-4 animate-spin"/> Carregando...</div>}
 
           {verses.length > 0 && (
-            <div className="max-h-40 overflow-y-auto bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+            <div className="max-h-40 overflow-y-auto bg-[#F8FAFD] dark:bg-slate-900 rounded-md p-3 border border-[#DEE3EA] dark:border-slate-700">
               {verses.map(v => (
                 <div key={v.verse}
                   onClick={() => setSelectedVerse(v.verse)}
-                  className={`p-2 rounded cursor-pointer text-sm ${selectedVerse === v.verse ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  <strong className="text-indigo-600 dark:text-indigo-400">{v.verse}</strong> {v.text}
+                  className={`p-2 rounded cursor-pointer text-sm ${selectedVerse === v.verse ? 'bg-[#E8EFFC] dark:bg-indigo-900/50 text-[#2C5AC7] dark:text-indigo-200' : 'hover:bg-[#F0F2F5] dark:hover:bg-slate-800'}`}>
+                  <strong className="text-[#3B6FE0] dark:text-indigo-400">{v.verse}</strong> {v.text}
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancelar</button>
+        <div className="p-4 border-t border-[#DEE3EA] dark:border-slate-700 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-[#F0F2F5] dark:hover:bg-slate-700 rounded-md">Cancelar</button>
           <button onClick={handleInsert} disabled={!book || !selectedChapter}
-            className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
+            className="px-6 py-2 bg-[#3B6FE0] text-white text-sm font-semibold rounded-md hover:bg-[#2C5AC7] disabled:opacity-50 flex items-center gap-2">
             <BookOpen className="w-4 h-4" /> Inserir Citação
           </button>
         </div>
