@@ -153,11 +153,11 @@ interface TemplatesModalProps {
 
 const TemplatesModal: React.FC<TemplatesModalProps> = ({ onSelect, onClose, currentTitle }) => {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-indigo-600" /> Modelos de Texto
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+        <div className="flex justify-between items-center p-4 border-b border-[#DEE3EA] dark:border-slate-700">
+          <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#3B6FE0]" /> Modelos de Texto
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
         </div>
@@ -169,10 +169,10 @@ const TemplatesModal: React.FC<TemplatesModalProps> = ({ onSelect, onClose, curr
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {TEMPLATES.map(t => (
               <button key={t.id} onClick={() => { onSelect(t.getHtml(currentTitle)); }}
-                className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left">
+                className="p-4 bg-[#F8FAFD] dark:bg-slate-700/50 rounded-md border border-[#DEE3EA] dark:border-slate-600 hover:border-[#3B6FE0] dark:hover:border-indigo-500 hover:shadow-sm transition-all text-left">
                 <div className="flex items-center gap-3 mb-2">
                   {t.icon}
-                  <span className="font-semibold text-slate-800 dark:text-white text-sm">{t.name}</span>
+                  <span className="font-display font-semibold text-slate-900 dark:text-white text-sm">{t.name}</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{t.description}</p>
               </button>
