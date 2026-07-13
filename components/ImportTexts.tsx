@@ -134,10 +134,10 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#DEE3EA] dark:border-slate-700 p-5 sm:p-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-2 mb-4">
-        <Upload className="w-5 h-5 text-indigo-500" />
-        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Importar Textos</h3>
+        <Upload className="w-5 h-5 text-[#3B6FE0]" />
+        <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white">Importar Textos</h3>
       </div>
 
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -150,10 +150,10 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center cursor-pointer transition-colors ${
             isDragging 
-              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
-              : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400'
+              ? 'border-[#3B6FE0] bg-[#E8EFFC] dark:bg-indigo-900/20' 
+              : 'border-[#DEE3EA] dark:border-slate-600 hover:border-[#3B6FE0]'
           }`}
         >
           <Upload className="w-10 h-10 mx-auto text-slate-400 mb-3" />
@@ -165,16 +165,16 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
 
       {isProcessing && !parsedTexts.length && (
         <div className="text-center py-8">
-          <Loader2 className="w-8 h-8 mx-auto text-indigo-500 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 mx-auto text-[#3B6FE0] animate-spin mb-3" />
           <p className="text-slate-600 dark:text-slate-300">Analisando textos com IA...</p>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-4">
-            <div className="bg-indigo-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+          <div className="w-full bg-[#F0F2F5] dark:bg-slate-700 rounded-full h-2 mt-4">
+            <div className="bg-[#3B6FE0] h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg mt-4">
+        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md mt-4">
           <AlertCircle className="w-4 h-4" />
           <span className="text-sm">{error}</span>
         </div>
@@ -193,13 +193,13 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
 
           <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
             {parsedTexts.map((text, i) => (
-              <div key={i} className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                <FileText className="w-4 h-4 text-indigo-500 mt-0.5" />
+              <div key={i} className="flex items-start gap-2 p-3 bg-[#F8FAFD] dark:bg-slate-700/50 rounded-md">
+                <FileText className="w-4 h-4 text-[#3B6FE0] mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{text.title}</p>
+                  <p className="font-display text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{text.title}</p>
                   <p className="text-xs text-slate-400">{text.content.substring(0, 60)}...</p>
                 </div>
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
               </div>
             ))}
           </div>
@@ -207,7 +207,7 @@ export const ImportTexts: React.FC<ImportTextsProps> = ({ onImportComplete }) =>
           <button
             onClick={saveAllTexts}
             disabled={isProcessing}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#3B6FE0] hover:bg-[#2C5AC7] text-white rounded-md font-semibold disabled:opacity-50"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             Salvar {parsedTexts.length} Textos
