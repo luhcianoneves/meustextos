@@ -48,7 +48,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
           const py = centerY + Math.sin(angle) * planetR;
 
           // Add Tag Node (Planet)
-          nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#6366f1' }); // Indigo
+          nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#3B6FE0' }); // Azul 5A
 
           // Find connected texts (Moons)
           const relatedTexts = entries.filter(e => Array.isArray(e.tags) && e.tags.includes(tag)).slice(0, 4);
@@ -59,7 +59,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
                const my = py + Math.sin(moonAngle) * moonR;
                
                // Only add if not exists (texts can belong to multiple tags, simple dedupe by ID would require complex layouting, allowing overlap for this simple viz)
-               nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle || txt.originalTitle || '', x: mx, y: my, r: 6, color: '#94a3b8' });
+               nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle || txt.originalTitle || '', x: mx, y: my, r: 6, color: '#8492A6' });
                links.push({ x1: px, y1: py, x2: mx, y2: my });
           });
           
@@ -68,77 +68,77 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
       });
 
       // Core Node
-      nodes.push({ id: 'core', type: 'tag', label: 'Luciano\'s Scribe', x: centerX, y: centerY, r: 10, color: '#fbbf24' });
+      nodes.push({ id: 'core', type: 'tag', label: 'Luciano\'s Scribe', x: centerX, y: centerY, r: 10, color: '#C2540E' });
 
       return { nodes, links };
   }, [entries, sortedTags]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
-        <BarChart3 className="text-indigo-500" />
+    <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6 animate-in fade-in duration-500">
+      <h2 className="font-display text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-2 sm:mb-6">
+        <BarChart3 className="text-[#3B6FE0]" />
         Estatísticas de Produtividade
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Cards */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
-                <CalendarCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="p-3 bg-[#E8EFFC] dark:bg-indigo-900/30 rounded-md">
+                <CalendarCheck className="w-6 h-6 text-[#2C5AC7] dark:text-indigo-400" />
             </div>
             <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Total de Textos</p>
-                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{totalTexts}</h3>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">{totalTexts}</h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-md">
                 <Type className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Palavras Escritas</p>
-                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{totalWords.toLocaleString('pt-BR')}</h3>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">{totalWords.toLocaleString('pt-BR')}</h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                <Hash className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <div className="p-3 bg-[#FDEEE3] dark:bg-amber-900/30 rounded-md">
+                <Hash className="w-6 h-6 text-[#C2540E] dark:text-amber-400" />
             </div>
             <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Tags Únicas</p>
-                <h3 className="text-3xl font-bold text-slate-800 dark:text-white">{Object.keys(tagCounts).length}</h3>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">{Object.keys(tagCounts).length}</h3>
             </div>
           </div>
         </div>
       </div>
 
       {/* Mind Map */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Network className="w-5 h-5"/> Galáxia de Tópicos (Mapa Mental)</h3>
+      <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
+          <h3 className="font-display text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-1 flex items-center gap-2"><Network className="w-5 h-5 text-[#3B6FE0]"/> Galáxia de Tópicos</h3>
           <p className="text-sm text-slate-500 mb-4">Visualização das suas principais tags e como os textos orbitam ao redor delas.</p>
           
-          <div className="w-full overflow-hidden border border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 flex justify-center">
-              <svg width="800" height="500" viewBox="0 0 800 500" className="w-full h-auto">
+          <div className="w-full overflow-x-auto border border-[#DEE3EA] dark:border-slate-700 rounded-md bg-[#F8FAFD] dark:bg-slate-900 flex justify-center">
+              <svg width="800" height="500" viewBox="0 0 800 500" className="w-full min-w-[600px] h-auto">
                   {/* Lines */}
                   {mindMapData.links.map((link, i) => (
-                      <line key={i} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2} stroke="#cbd5e1" strokeWidth="1" className="dark:stroke-slate-700" />
+                      <line key={i} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2} stroke="#DEE3EA" strokeWidth="1.5" className="dark:stroke-slate-700" />
                   ))}
                   {/* Nodes */}
                   {mindMapData.nodes.map((node, i) => (
                       <g key={i}>
-                          <circle cx={node.x} cy={node.y} r={node.r} fill={node.color} className="shadow-sm" />
+                          <circle cx={node.x} cy={node.y} r={node.r} fill={node.color} opacity={node.type === 'tag' ? 0.9 : 0.7} />
                           <text 
                             x={node.x} 
-                            y={node.y + node.r + 12} 
+                            y={node.y + node.r + 13} 
                             textAnchor="middle" 
-                            className={`text-[10px] font-medium fill-slate-600 dark:fill-slate-300 pointer-events-none ${node.type === 'tag' ? 'font-bold uppercase tracking-wider' : ''}`}
+                            className={`text-[11px] font-medium fill-slate-600 dark:fill-slate-300 pointer-events-none ${node.type === 'tag' ? 'font-bold uppercase tracking-wide' : ''}`}
                           >
                               {node.label.length > 20 ? node.label.substring(0,18)+'...' : node.label}
                           </text>
@@ -149,13 +149,13 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
       </div>
 
       {/* Tag Cloud List */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Detalhes dos Tópicos</h3>
-        <div className="flex flex-wrap gap-3">
+      <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
+        <h3 className="font-display text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-4">Detalhes dos Tópicos</h3>
+        <div className="flex flex-wrap gap-2 sm:gap-3">
             {sortedTags.map(([tag, count], index) => (
-                <div key={tag} className="flex items-center bg-slate-50 dark:bg-slate-700 rounded-full px-4 py-2 border border-slate-200 dark:border-slate-600">
-                    <span className="text-slate-700 dark:text-slate-200 font-medium mr-2">{tag}</span>
-                    <span className="bg-indigo-100 dark:bg-indigo-500 text-indigo-700 dark:text-white text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
+                <div key={tag} className="flex items-center bg-[#F0F2F5] dark:bg-slate-700 rounded-md px-3 py-1.5 sm:px-4 sm:py-2">
+                    <span className="text-slate-700 dark:text-slate-200 font-medium text-sm mr-2">{tag}</span>
+                    <span className="bg-[#3B6FE0] dark:bg-indigo-500 text-white text-xs font-bold px-2 py-0.5 rounded">{count}</span>
                 </div>
             ))}
         </div>
