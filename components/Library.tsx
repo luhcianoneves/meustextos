@@ -244,8 +244,10 @@ const filteredEntries = useMemo(() => {
     if (!modalEntry) return '';
     const body = modalEntry.correctedBody || modalEntry.originalBody || '';
     let counter = 0;
-    return body.replace(/<(h[1-4])(\b[^>]*)?>(.*?)<\/\1>/gi, (match, tag, attrs, content) => {
-      return `<${tag}${attrs || ''} id="heading-${counter++}">${content}</${tag}>`;
+    const headingRe = new RegExp('<(' + ['h1','h2','h3','h4'].join('|') + ')(\\b[^>]*)?>(.*?)<' + '/' + '\\1>', 'gi');
+    return body.replace(headingRe, (match, tag, attrs, content) => {
+      const attrsStr = attrs || '';
+      return '<' + tag + attrsStr + ' id="heading-' + counter++ + '">' + content + '<' + '/' + tag + '>';
     });
   }, [modalEntry]);
 
@@ -419,11 +421,11 @@ const filteredEntries = useMemo(() => {
       {/* Text Reader Modal */}
       {modalEntry && (
         <div
-          className={`fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm transition-all duration-300 ${sepiaMode ? 'sepia-bg' : ''}`}
+          className={`fixed inset-0 z-50 overflow-y-auto flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm ${sepiaMode ? 'sepia-bg' : ''}`}
           onClick={() => setModalEntry(null)}
         >
           <div
-            className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scale-in"
+            className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scale-in my-4 sm:my-8 mx-2 sm:mx-4"
             onClick={e => e.stopPropagation()}
           >
             {/* Reading Progress Bar */}
