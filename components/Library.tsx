@@ -1,6 +1,6 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2, Edit, ArrowUpDown, CalendarSearch, Filter, X } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { Search, Calendar, Tag, BookOpen, ChevronDown, ChevronUp, Hash, BookMarked, Download, FileText, File, Star, Volume2, Share2, LayoutGrid, LayoutList, Folder, Presentation, Link as LinkIcon, HelpCircle, Loader2, Trash2, Edit, ArrowUpDown, CalendarSearch, Filter, X, Sun, Minus, Plus, List, Clock, ArrowLeft } from 'lucide-react';
 import { TextEntry, Collection, Slide } from '../types';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
@@ -29,6 +29,12 @@ export const Library: React.FC<LibraryProps> = ({ entries, collections, onToggle
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
+  const [sepiaMode, setSepiaMode] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [showToc, setShowToc] = useState(false);
+  const [tocHeadings, setTocHeadings] = useState<{id: string; text: string; level: number}[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
@@ -220,6 +226,67 @@ const filteredEntries = useMemo(() => {
       ).slice(0, 3);
   };
 
+  const stripHtml = (html: string) => {
+    if (!html) return '';
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.innerText || '';
+  };
+
+  const readingTime = useMemo(() => {
+    if (!modalEntry) return 0;
+    const text = stripHtml(modalEntry.correctedBody || modalEntry.originalBody || '');
+    const words = text.split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(words / 200));
+  }, [modalEntry]);
+
+  const contentHtml = useMemo(() => {
+    if (!modalEntry) return '';
+    const body = modalEntry.correctedBody || modalEntry.originalBody || '';
+    let counter = 0;
+    return body.replace(/<(h[1-4])(\b[^>]*)?>(.*?)<\/\1>/gi, (match, tag, attrs, content) => {
+      return `<${tag}${attrs || ''} id="heading-${counter++}">${content}</${tag}>`;
+    });
+  }, [modalEntry]);
+
+  useEffect(() => {
+    if (!modalEntry) return;
+    const body = modalEntry.correctedBody || modalEntry.originalBody || '';
+    const div = document.createElement('div');
+    div.innerHTML = body;
+    const headingElements = div.querySelectorAll('h1, h2, h3, h4');
+    const extracted = Array.from(headingElements).map((h, i) => ({
+      id: `heading-${i}`,
+      text: (h.textContent || '').trim(),
+      level: parseInt(h.tagName[1])
+    }));
+    setTocHeadings(extracted);
+    setReadingProgress(0);
+  }, [modalEntry]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalEntry) setModalEntry(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [modalEntry]);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const scrollable = el.scrollHeight - el.clientHeight;
+    if (scrollable <= 0) { setReadingProgress(100); return; }
+    setReadingProgress(Math.min(100, Math.round((el.scrollTop / scrollable) * 100)));
+  }, []);
+
+  const scrollToHeading = (id: string) => {
+    const el = scrollRef.current?.querySelector(`#${CSS.escape(id)}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setShowToc(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
 
@@ -351,142 +418,330 @@ const filteredEntries = useMemo(() => {
 
       {/* Text Reader Modal */}
       {modalEntry && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2 sm:p-4" onClick={() => setModalEntry(null)}>
-          <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
-            onClick={e => e.stopPropagation()}>
-            
+        <div
+          className={`fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm transition-all duration-300 ${sepiaMode ? 'sepia-bg' : ''}`}
+          onClick={() => setModalEntry(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scale-in"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Reading Progress Bar */}
+            <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-0 overflow-hidden shrink-0">
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-150 ease-out"
+                style={{ width: `${readingProgress}%` }}
+              />
+            </div>
+
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 border-b border-[#DEE3EA] dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-800/90 rounded-t-2xl">
+            <div className="p-5 sm:p-6 border-b border-[#DEE3EA] dark:border-slate-700 flex items-start justify-between gap-4 bg-gradient-to-br from-white via-slate-50/80 to-indigo-50/30 dark:from-slate-800 dark:via-slate-800 dark:to-indigo-950/20 rounded-t-2xl">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs uppercase tracking-wide font-semibold text-slate-400 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5"/> {new Date(modalEntry.creationDate).toLocaleDateString('pt-BR')}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>{new Date(modalEntry.creationDate).toLocaleDateString('pt-BR')}</span>
+                  </div>
                   {modalEntry.collectionId && (
-                    <span className="text-xs font-semibold bg-[#E8EFFC] dark:bg-indigo-900/50 text-[#2C5AC7] dark:text-indigo-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                       <Folder className="w-3 h-3"/> {getCollectionName(modalEntry.collectionId)}
                     </span>
                   )}
+                  <span className="text-[10px] text-slate-400 flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-2 ml-0.5">
+                    <Clock className="w-3 h-3"/> {readingTime} min de leitura
+                  </span>
                 </div>
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">{modalEntry.correctedTitle || modalEntry.originalTitle}</h2>
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                  {modalEntry.correctedTitle || modalEntry.originalTitle}
+                </h2>
                 {modalEntry.summary && (
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{modalEntry.summary}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{modalEntry.summary}</p>
                 )}
               </div>
-              <button onClick={() => setModalEntry(null)} 
-                className="shrink-0 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all">
+              <button
+                onClick={() => setModalEntry(null)}
+                className="shrink-0 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all"
+                title="Fechar (Esc)"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Actions */}
-            <div className="px-5 sm:px-6 py-3 border-b border-[#DEE3EA] dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap gap-2 justify-between items-center">
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={() => speakText(modalEntry.correctedBody || modalEntry.originalBody || '')} 
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 rounded-lg hover:bg-[#3B6FE0] hover:text-white dark:hover:bg-[#3B6FE0] transition-all">
+            <div className="px-5 sm:px-6 py-3 border-b border-[#DEE3EA] dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap gap-2 justify-between items-center shrink-0">
+              <div className="flex gap-2 flex-wrap items-center">
+                <button
+                  onClick={() => speakText(modalEntry.correctedBody || modalEntry.originalBody || '')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 rounded-lg hover:bg-[#3B6FE0] hover:text-white dark:hover:bg-[#3B6FE0] transition-all"
+                >
                   <Volume2 className="w-3.5 h-3.5"/> Ouvir
                 </button>
-                <button onClick={() => handleGenerateSlides(modalEntry)} 
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 rounded-lg hover:bg-[#3B6FE0] hover:text-white dark:hover:bg-[#3B6FE0] transition-all">
+                <button
+                  onClick={() => handleGenerateSlides(modalEntry)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 rounded-lg hover:bg-[#3B6FE0] hover:text-white dark:hover:bg-[#3B6FE0] transition-all"
+                >
                   <Presentation className="w-3.5 h-3.5"/> Slides
                 </button>
+
+                {/* Font Size Controls */}
+                <div className="flex items-center gap-0.5 bg-white dark:bg-slate-700 rounded-lg border border-[#DEE3EA] dark:border-slate-600 px-1 py-0.5">
+                  <button
+                    onClick={() => setFontSize(s => Math.max(14, s - 1))}
+                    className="p-1 text-slate-500 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-all"
+                    disabled={fontSize <= 14}
+                    title="Diminuir fonte"
+                  >
+                    <Minus className="w-3 h-3"/>
+                  </button>
+                  <span className="text-[10px] font-mono text-slate-400 min-w-[18px] text-center select-none">{fontSize}</span>
+                  <button
+                    onClick={() => setFontSize(s => Math.min(24, s + 1))}
+                    className="p-1 text-slate-500 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-all"
+                    disabled={fontSize >= 24}
+                    title="Aumentar fonte"
+                  >
+                    <Plus className="w-3 h-3"/>
+                  </button>
+                </div>
+
+                {/* Sepia Toggle */}
+                <button
+                  onClick={() => setSepiaMode(s => !s)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    sepiaMode
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent'
+                  }`}
+                  title="Modo Sépia"
+                >
+                  <Sun className="w-3.5 h-3.5"/> Sépia
+                </button>
+
+                {/* TOC Toggle */}
+                {tocHeadings.length > 0 && (
+                  <button
+                    onClick={() => setShowToc(s => !s)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      showToc
+                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
+                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent'
+                    }`}
+                    title="Sumário"
+                  >
+                    <List className="w-3.5 h-3.5"/> Sumário
+                  </button>
+                )}
               </div>
               <div className="flex gap-1">
-                <button onClick={() => { onEdit(modalEntry); setModalEntry(null); }} 
-                  className="p-2 text-slate-500 hover:text-[#3B6FE0] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Editar">
+                <button
+                  onClick={() => { onEdit(modalEntry); setModalEntry(null); }}
+                  className="p-2 text-slate-500 hover:text-[#3B6FE0] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                  title="Editar"
+                >
                   <Edit className="w-4 h-4"/>
                 </button>
-                <button onClick={() => handleShare(modalEntry)} 
-                  className="p-2 text-slate-500 hover:text-[#3B6FE0] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Compartilhar">
+                <button
+                  onClick={() => handleShare(modalEntry)}
+                  className="p-2 text-slate-500 hover:text-[#3B6FE0] hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                  title="Compartilhar"
+                >
                   <Share2 className="w-4 h-4"/>
                 </button>
-                <button onClick={() => exportToPDF(modalEntry)} 
-                  className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Exportar PDF">
+                <button
+                  onClick={() => exportToPDF(modalEntry)}
+                  className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                  title="Exportar PDF"
+                >
                   <FileText className="w-4 h-4"/>
                 </button>
-                <button onClick={() => handleDelete(modalEntry)} 
-                  className="p-2 text-slate-500 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="Excluir">
+                <button
+                  onClick={() => handleDelete(modalEntry)}
+                  className="p-2 text-slate-500 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+                  title="Excluir"
+                >
                   <Trash2 className="w-4 h-4"/>
                 </button>
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-5 sm:p-8">
-              {/* Dictionary Popup */}
-              {showDefPopup && selectedWord && (
-                <div className="absolute z-50 bg-white dark:bg-slate-800 shadow-xl rounded-md border border-[#DEE3EA] dark:border-slate-700 p-3 max-w-xs"
-                  style={{ top: popupPos.y, left: popupPos.x }}>
-                  {!definition ? (
-                    <button onClick={handleDefineTerm} className="flex items-center gap-2 text-[#3B6FE0] dark:text-indigo-400 font-semibold text-sm hover:underline">
-                      {definitionLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <BookOpen className="w-4 h-4"/>}
-                      Definir "{selectedWord.length > 15 ? selectedWord.substring(0,12)+'...' : selectedWord}"?
-                    </button>
-                  ) : (
-                    <div>
-                      <h5 className="font-display font-semibold text-slate-800 dark:text-white text-sm mb-1">{selectedWord}</h5>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{definition}</p>
-                      <button onClick={closeDefinition} className="mt-2 text-xs text-slate-400 hover:text-slate-600 underline">Fechar</button>
+            {/* Modal Body with TOC */}
+            <div className="flex flex-1 overflow-hidden">
+              {/* TOC Sidebar - Desktop */}
+              {showToc && tocHeadings.length > 0 && (
+                <div className="hidden md:block w-56 shrink-0 border-r border-[#DEE3EA] dark:border-slate-700 overflow-y-auto bg-slate-50/80 dark:bg-slate-800/80">
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <List className="w-4 h-4 text-[#3B6FE0]" />
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Sumário</span>
+                    </div>
+                    <nav className="space-y-0.5">
+                      {tocHeadings.map(h => (
+                        <button
+                          key={h.id}
+                          onClick={() => scrollToHeading(h.id)}
+                          className={`block w-full text-left py-1 text-xs leading-snug transition-colors hover:text-[#3B6FE0] dark:hover:text-indigo-400 ${
+                            h.level === 1
+                              ? 'pl-0 font-semibold text-slate-700 dark:text-slate-200'
+                              : h.level === 2
+                              ? 'pl-3 text-slate-500 dark:text-slate-400'
+                              : 'pl-6 text-slate-400 dark:text-slate-500'
+                          }`}
+                        >
+                          {h.text}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+              )}
+
+              {/* TOC Overlay - Mobile */}
+              {showToc && tocHeadings.length > 0 && (
+                <div
+                  className="fixed inset-0 z-40 bg-black/30 md:hidden"
+                  onClick={() => setShowToc(false)}
+                >
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-800 shadow-xl animate-slide-in-left"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="p-4 border-b border-[#DEE3EA] dark:border-slate-700 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Sumário</span>
+                      <button
+                        onClick={() => setShowToc(false)}
+                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
+                      >
+                        <ArrowLeft className="w-4 h-4"/>
+                      </button>
+                    </div>
+                    <nav className="p-4 space-y-1 overflow-y-auto max-h-[80vh]">
+                      {tocHeadings.map(h => (
+                        <button
+                          key={h.id}
+                          onClick={() => scrollToHeading(h.id)}
+                          className={`block w-full text-left py-1.5 text-sm leading-snug text-slate-600 dark:text-slate-400 hover:text-[#3B6FE0] dark:hover:text-indigo-400 transition-colors ${
+                            h.level === 1 ? 'font-semibold' : h.level === 2 ? 'pl-3' : 'pl-6'
+                          }`}
+                        >
+                          {h.text}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+              )}
+
+              {/* Content Area */}
+              <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className={`flex-1 overflow-y-auto transition-colors duration-300 ${
+                  sepiaMode ? 'bg-amber-50' : 'bg-white dark:bg-slate-800'
+                }`}
+              >
+                <div className="p-5 sm:p-8">
+                  {/* Dictionary Popup */}
+                  {showDefPopup && selectedWord && (
+                    <div
+                      className="absolute z-50 bg-white dark:bg-slate-800 shadow-xl rounded-md border border-[#DEE3EA] dark:border-slate-700 p-3 max-w-xs"
+                      style={{ top: popupPos.y, left: popupPos.x }}
+                    >
+                      {!definition ? (
+                        <button onClick={handleDefineTerm} className="flex items-center gap-2 text-[#3B6FE0] dark:text-indigo-400 font-semibold text-sm hover:underline">
+                          {definitionLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <BookOpen className="w-4 h-4"/>}
+                          Definir "{selectedWord.length > 15 ? selectedWord.substring(0,12)+'...' : selectedWord}"?
+                        </button>
+                      ) : (
+                        <div>
+                          <h5 className="font-display font-semibold text-slate-800 dark:text-white text-sm mb-1">{selectedWord}</h5>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{definition}</p>
+                          <button onClick={closeDefinition} className="mt-2 text-xs text-slate-400 hover:text-slate-600 underline">Fechar</button>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* Content */}
-              <div className="prose prose-lg dark:prose-invert max-w-none serif-font leading-relaxed rich-content text-black dark:text-slate-200"
-                dangerouslySetInnerHTML={{ __html: modalEntry.correctedBody || modalEntry.originalBody || '' }} />
+                  {/* Content */}
+                  <div
+                    className="serif-font leading-relaxed rich-content"
+                    style={{ fontSize: `${fontSize}px` }}
+                    dangerouslySetInnerHTML={{ __html: contentHtml }}
+                  />
 
-              {/* Tags */}
-              {Array.isArray(modalEntry.tags) && modalEntry.tags.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-[#DEE3EA] dark:border-slate-700">
-                  <div className="flex gap-2 flex-wrap">
-                    {modalEntry.tags.map(tag => (
-                      <span key={tag} className="text-xs font-semibold bg-[#F0F2F5] dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full">#{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Bible Citations */}
-              {Array.isArray(modalEntry.bibleCitations) && modalEntry.bibleCitations.length > 0 && (
-                <div className="mt-8 bg-[#FDEEE3] dark:bg-slate-900/50 border border-[#F6D4B8] dark:border-slate-700 rounded-xl p-5 sm:p-6">
-                  <h4 className="font-display font-semibold text-[#B8431A] dark:text-amber-500 flex items-center gap-2 mb-4">
-                    <BookMarked className="w-5 h-5"/> Referências Bíblicas
-                  </h4>
-                  <div className="grid gap-3">
-                    {modalEntry.bibleCitations.map((c, idx) => (
-                      <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-[#F6D4B8] dark:border-slate-700">
-                        <p className="text-xs font-bold text-[#B8431A] dark:text-amber-400 uppercase tracking-wide mb-1">{c.reference}</p>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">"{c.text}"</p>
+                  {/* Tags */}
+                  {Array.isArray(modalEntry.tags) && modalEntry.tags.length > 0 && (
+                    <div className="mt-8 pt-6 border-t border-[#DEE3EA] dark:border-slate-700">
+                      <div className="flex gap-2 flex-wrap">
+                        {modalEntry.tags.map(tag => (
+                          <span key={tag} className="text-xs font-semibold bg-[#F0F2F5] dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full">#{tag}</span>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )}
 
-              {/* Related Texts */}
-              {getRelatedTexts(modalEntry).length > 0 && (
-                <div className="mt-6 bg-[#E8EFFC] dark:bg-slate-900/50 border border-[#C7D9F7] dark:border-slate-700 rounded-xl p-5 sm:p-6">
-                  <h4 className="font-display font-semibold text-[#2C5AC7] dark:text-indigo-400 flex items-center gap-2 mb-3 text-sm">
-                    <LinkIcon className="w-4 h-4"/> Textos Relacionados
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {getRelatedTexts(modalEntry).map(rel => (
-                      <div key={rel.id} onClick={() => setModalEntry(rel)} 
-                        className="cursor-pointer p-3 bg-white dark:bg-slate-800 rounded-lg border border-[#C7D9F7] dark:border-slate-700 hover:shadow-md hover:border-[#3B6FE0] transition-all">
-                        <p className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle || rel.originalTitle}</p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {new Date(rel.creationDate).toLocaleDateString()} • {
-                            (Array.isArray(rel.tags) && Array.isArray(modalEntry.tags))
-                              ? rel.tags.filter(t => modalEntry.tags.includes(t)).join(', ')
-                              : ''
-                          }
-                        </p>
+                  {/* Bible Citations */}
+                  {Array.isArray(modalEntry.bibleCitations) && modalEntry.bibleCitations.length > 0 && (
+                    <div className="mt-8 bg-gradient-to-br from-[#FDEEE3] to-[#FFF8F0] dark:from-slate-900/70 dark:to-slate-900/30 border border-[#F6D4B8] dark:border-slate-700 rounded-xl p-5 sm:p-6">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="p-2 bg-[#B8431A]/10 dark:bg-amber-900/30 rounded-lg">
+                          <BookMarked className="w-5 h-5 text-[#B8431A] dark:text-amber-500"/>
+                        </div>
+                        <div>
+                          <h4 className="font-display font-semibold text-[#B8431A] dark:text-amber-400">Referências Bíblicas</h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-500">{modalEntry.bibleCitations.length} citação{(modalEntry.bibleCitations.length > 1 ? 'ões' : '')}</p>
+                        </div>
                       </div>
-                    ))}
+                      <div className="grid gap-3">
+                        {modalEntry.bibleCitations.map((c, idx) => (
+                          <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-[#F6D4B8] dark:border-slate-700 flex gap-3">
+                            <div className="shrink-0 w-1 bg-[#B8431A] dark:bg-amber-600 rounded-full self-stretch"/>
+                            <div>
+                              <p className="text-xs font-bold text-[#B8431A] dark:text-amber-400 uppercase tracking-wide mb-1">{c.reference}</p>
+                              <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">"{c.text}"</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Related Texts */}
+                  {getRelatedTexts(modalEntry).length > 0 && (
+                    <div className="mt-6 bg-gradient-to-br from-[#E8EFFC] to-[#F0F4FE] dark:from-slate-900/70 dark:to-slate-900/30 border border-[#C7D9F7] dark:border-slate-700 rounded-xl p-5 sm:p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-[#2C5AC7]/10 dark:bg-indigo-900/30 rounded-lg">
+                          <LinkIcon className="w-4 h-4 text-[#2C5AC7] dark:text-indigo-400"/>
+                        </div>
+                        <h4 className="font-display font-semibold text-[#2C5AC7] dark:text-indigo-400">Textos Relacionados</h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {getRelatedTexts(modalEntry).map(rel => (
+                          <div key={rel.id} onClick={() => setModalEntry(rel)}
+                            className="cursor-pointer p-3 bg-white dark:bg-slate-800 rounded-lg border border-[#C7D9F7] dark:border-slate-700 hover:shadow-md hover:border-[#3B6FE0] transition-all"
+                          >
+                            <p className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{rel.correctedTitle || rel.originalTitle}</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {new Date(rel.creationDate).toLocaleDateString()} • {
+                                (Array.isArray(rel.tags) && Array.isArray(modalEntry.tags))
+                                  ? rel.tags.filter(t => modalEntry.tags.includes(t)).join(', ')
+                                  : ''
+                              }
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="mt-8 pt-4 text-center text-[10px] text-slate-400 dark:text-slate-600 border-t border-[#DEE3EA] dark:border-slate-700/50">
+                    <span className="flex items-center justify-center gap-1.5">
+                      <BookOpen className="w-3 h-3"/> {readingTime} min de leitura • {new Date(modalEntry.creationDate).toLocaleDateString('pt-BR')}
+                      {modalEntry.collectionId && <> • {getCollectionName(modalEntry.collectionId)}</>}
+                    </span>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

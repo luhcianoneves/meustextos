@@ -128,6 +128,40 @@
         font-family: 'Merriweather', serif;
         width: 800px; /* Fixed width for A4 ratio simulation */
       }
+      /* Sepia mode for reading */
+      .sepia-bg .rich-content {
+        background-color: transparent !important;
+      }
+      .sepia-bg .rich-content p,
+      .sepia-bg .rich-content li,
+      .sepia-bg .rich-content blockquote,
+      .sepia-bg .rich-content span {
+        color: #5c3d2e !important;
+      }
+      .sepia-bg .rich-content h1,
+      .sepia-bg .rich-content h2,
+      .sepia-bg .rich-content h3,
+      .sepia-bg .rich-content h4 {
+        color: #451a03 !important;
+      }
+      .sepia-bg .rich-content blockquote {
+        border-left-color: #d4a373;
+      }
+      /* Modal animations */
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      .animate-scale-in {
+        animation: scaleIn 200ms ease-out;
+      }
+      .animate-slide-in-left {
+        animation: slideInLeft 150ms ease-out;
+      }
     </style>
   <script type="importmap">
 {
