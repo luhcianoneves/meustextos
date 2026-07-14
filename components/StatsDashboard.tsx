@@ -9,7 +9,6 @@ interface StatsDashboardProps {
 export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
   const totalTexts = entries.length;
   
-  // Calculate total words
   const totalWords = entries.reduce((acc, entry) => {
     const div = document.createElement('div');
     div.innerHTML = entry.correctedBody || entry.originalBody || '';
@@ -17,7 +16,6 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
     return acc + text.trim().split(/\s+/).length;
   }, 0);
 
-  // Tag frequency
   const tagCounts: Record<string, number> = {};
   entries.forEach(entry => {
     if (entry.tags && Array.isArray(entry.tags)) {
@@ -31,9 +29,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
     .sort(([,a], [,b]) => b - a)
     .slice(0, 10);
 
-  // Prepare Mind Map Data
   const mindMapData = useMemo(() => {
-      // Pick top 6 tags for the "Planets"
       const topTags = sortedTags.slice(0, 6).map(([t]) => t);
       const nodes: { id: string, type: 'tag' | 'text', label: string, x: number, y: number, r: number, color: string }[] = [];
       const links: { x1: number, y1: number, x2: number, y2: number }[] = [];
@@ -47,10 +43,8 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
           const px = centerX + Math.cos(angle) * planetR;
           const py = centerY + Math.sin(angle) * planetR;
 
-          // Add Tag Node (Planet)
-          nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#3B6FE0' }); // Azul 5A
+          nodes.push({ id: `tag-${tag}`, type: 'tag', label: tag, x: px, y: py, r: 25, color: '#3B6FE0' });
 
-          // Find connected texts (Moons)
           const relatedTexts = entries.filter(e => Array.isArray(e.tags) && e.tags.includes(tag)).slice(0, 4);
           relatedTexts.forEach((txt, j) => {
                const moonAngle = (j / relatedTexts.length) * 2 * Math.PI;
@@ -58,16 +52,13 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
                const mx = px + Math.cos(moonAngle) * moonR;
                const my = py + Math.sin(moonAngle) * moonR;
                
-               // Only add if not exists (texts can belong to multiple tags, simple dedupe by ID would require complex layouting, allowing overlap for this simple viz)
                nodes.push({ id: `txt-${tag}-${txt.id}`, type: 'text', label: txt.correctedTitle || txt.originalTitle || '', x: mx, y: my, r: 6, color: '#8492A6' });
                links.push({ x1: px, y1: py, x2: mx, y2: my });
           });
           
-          // Link to Center (Abstract Core)
           links.push({ x1: centerX, y1: centerY, x2: px, y2: py });
       });
 
-      // Core Node
       nodes.push({ id: 'core', type: 'tag', label: 'Luciano\'s Scribe', x: centerX, y: centerY, r: 10, color: '#C2540E' });
 
       return { nodes, links };
@@ -81,7 +72,6 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        {/* Cards */}
         <div className="bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-[#E8EFFC] dark:bg-indigo-900/30 rounded-md">
@@ -119,18 +109,15 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
         </div>
       </div>
 
-      {/* Mind Map */}
       <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
           <h3 className="font-display text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-1 flex items-center gap-2"><Network className="w-5 h-5 text-[#3B6FE0]"/> Galáxia de Tópicos</h3>
           <p className="text-sm text-slate-500 mb-4">Visualização das suas principais tags e como os textos orbitam ao redor delas.</p>
           
           <div className="w-full overflow-x-auto border border-[#DEE3EA] dark:border-slate-700 rounded-md bg-[#F8FAFD] dark:bg-slate-900 flex justify-center">
               <svg width="800" height="500" viewBox="0 0 800 500" className="w-full min-w-[600px] h-auto">
-                  {/* Lines */}
                   {mindMapData.links.map((link, i) => (
                       <line key={i} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2} stroke="#DEE3EA" strokeWidth="1.5" className="dark:stroke-slate-700" />
                   ))}
-                  {/* Nodes */}
                   {mindMapData.nodes.map((node, i) => (
                       <g key={i}>
                           <circle cx={node.x} cy={node.y} r={node.r} fill={node.color} opacity={node.type === 'tag' ? 0.9 : 0.7} />
@@ -148,7 +135,6 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ entries }) => {
           </div>
       </div>
 
-      {/* Tag Cloud List */}
       <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg border border-[#DEE3EA] dark:border-slate-700">
         <h3 className="font-display text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-4">Detalhes dos Tópicos</h3>
         <div className="flex flex-wrap gap-2 sm:gap-3">

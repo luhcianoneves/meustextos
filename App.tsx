@@ -376,9 +376,9 @@ const App: React.FC = () => {
                   </div>
                   
                    <div className="space-y-4">
-                       <div className="p-4 bg-[#F8FAFD] dark:bg-slate-900 rounded-md border border-[#DEE3EA] dark:border-slate-700">
-                           <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão com Servidor Próprio</h4>
-                           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte ao seu servidor Node.js + PostgreSQL rodando na VPS.</p>
+                        <div className="p-4 bg-[#F8FAFD] dark:bg-slate-900 rounded-md border border-[#DEE3EA] dark:border-slate-700">
+                            <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Conexão com Servidor Próprio</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Conecte ao seu servidor Node.js + PostgreSQL rodando na VPS.</p>
 
                         <div className="space-y-3">
                                 <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -391,34 +391,14 @@ const App: React.FC = () => {
                                       onChange={(e) => setApiConfig({...apiConfig, openrouterApiKey: e.target.value})}
                                       className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
                                     />
-                                    <select
-                                      value={apiConfig.openrouterModel || ''}
-                                      onChange={(e) => setApiConfig({...apiConfig, openrouterModel: e.target.value})}
-                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
-                                    >
-                                      <option value="">Selecione um modelo</option>
-                                      <optgroup label="🆓 Modelos Gratuitos">
-                                        <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (Grátis)</option>
-                                        <option value="microsoft/phi-3-mini-128k-instruct:free">Phi-3 Mini (Grátis)</option>
-                                        <option value="google/gemma-2-9b-it:free">Gemma 2 9B (Grátis)</option>
-                                        <option value="qwen/qwen-2-7b-instruct:free">Qwen 2 7B (Grátis)</option>
-                                      </optgroup>
-                                      <optgroup label="💰 Modelos Premium">
-                                        <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
-                                        <option value="openai/gpt-4o">GPT-4o</option>
-                                        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
-                                        <option value="google/gemini-pro-1.5">Gemini Pro 1.5</option>
-                                        <option value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B</option>
-                                      </optgroup>
-                                    </select>
                                     <input
                                       type="text"
-                                      placeholder="Ou digite modelo personalizado..."
+                                      placeholder="inclusionai/ring-2.6-1t:free"
                                       value={apiConfig.openrouterModel || ''}
                                       onChange={(e) => setApiConfig({...apiConfig, openrouterModel: e.target.value})}
                                       className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                     />
-                                    <p className="text-xs text-slate-400 mt-1 mb-2">Escolha da lista ou digite o código do modelo manualmente</p>
+                                    <p className="text-xs text-slate-400 mt-1 mb-2">Código do modelo (ex: anthropic/claude-3.5-sonnet)</p>
                                     <button 
                                       onClick={async () => {
                                         if (!apiConfig.openrouterApiKey || !apiConfig.openrouterModel) {
@@ -469,33 +449,33 @@ const App: React.FC = () => {
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Ativar Conexão</span>
                                 </label>
                                <input 
-                                 type="text" 
-                                 placeholder="URL da API (https://meustextos.vercel.app)" 
-                                 value={apiConfig.url}
-                                 onChange={(e) => setApiConfig({...apiConfig, url: e.target.value})}
-                                 className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                               />
-                               <p className="text-xs text-slate-400 mb-2">Endereço do servidor Node.js (com porta)</p>
-                               <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                                   <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Autenticação (para login)</p>
-                                   <input 
-                                     type="email" 
-                                     placeholder="Email do Usuário" 
-                                     value={apiConfig.email || ''}
-                                     onChange={(e) => setApiConfig({...apiConfig, email: e.target.value})}
-                                     className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
-                                   />
-                                   <input 
-                                     type="password" 
-                                     placeholder="Senha do Usuário" 
-                                     value={apiConfig.password || ''}
-                                     onChange={(e) => setApiConfig({...apiConfig, password: e.target.value})}
-                                     className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                                   />
-                               </div>
-                           </div>
-                       </div>
-                      
+                                  type="text" 
+                                  placeholder="URL da API (https://meustextos.vercel.app)" 
+                                  value={apiConfig.url}
+                                  onChange={(e) => setApiConfig({...apiConfig, url: e.target.value})}
+                                  className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                />
+                                <p className="text-xs text-slate-400 mb-2">Endereço do servidor Node.js (com porta)</p>
+                                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                                    <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Autenticação (para login)</p>
+                                    <input 
+                                      type="email" 
+                                      placeholder="Email do Usuário" 
+                                      value={apiConfig.email || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, email: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white mb-2"
+                                    />
+                                    <input 
+                                      type="password" 
+                                      placeholder="Senha do Usuário" 
+                                      value={apiConfig.password || ''}
+                                      onChange={(e) => setApiConfig({...apiConfig, password: e.target.value})}
+                                      className="w-full p-2 text-sm border rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                       
 <button onClick={handleSaveSettings} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex justify-center items-center gap-2">
                             <Save className="w-4 h-4" /> Salvar Alterações
                         </button>

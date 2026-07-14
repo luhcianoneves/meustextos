@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2, Scissors, Type as FontIcon, Square, Grid, Code, FileDown } from 'lucide-react';
+import { Save, Sparkles, Loader2, Calendar, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Mic, MicOff, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Image as ImageIcon, Video, FolderOpen, Clock, Lightbulb, RotateCcw, Upload, Heading1, Heading2, Heading3, Quote, Undo, Redo, RemoveFormatting, Download, Eye, EyeOff, File, FileText, Languages, FileEdit, BookOpen, CheckCircle, Sparkles as AISparkle, Link, Minus, Palette, Type as TypeIcon, Superscript, Subscript, Link2, Scissors, Square, Grid, Code, FileDown } from 'lucide-react';
 import { processTextEntry, generateIllustration, transcribeAudioFile, summarizeSelectedText, rewriteInStyle, translateText, suggestTitles, correctGrammar } from '../services/aiService';
 import { TextEntry, Collection } from '../types';
 import { jsPDF } from 'jspdf';
@@ -397,7 +397,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
       const processed = await processTextEntry(title, bodyContent);
       
       const newEntry: TextEntry = {
-        // Use existing ID if editing, otherwise create new
         id: initialEntry ? initialEntry.id : crypto.randomUUID(),
         originalTitle: title,
         originalBody: bodyContent,
@@ -408,7 +407,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
         bibleCitations: processed.bibleCitations || [],
         creationDate: date,
         savedAt: Date.now(),
-        // Preserve favorite status if editing
         isFavorite: initialEntry ? initialEntry.isFavorite : false,
         collectionId: selectedCollection,
         versions: previousVersions
@@ -416,7 +414,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
 
       onSave(newEntry);
       
-      // Only clear if not editing (or handled by parent unmount)
       if (!initialEntry) {
         setTitle('');
         if (editorRef.current) editorRef.current.innerHTML = '';
@@ -457,7 +454,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [title]); // Dependência title para evitar warning
+  }, [title]);
 
   // Funções de exportação
   const exportToPDF = () => {
