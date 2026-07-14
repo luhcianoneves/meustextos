@@ -822,7 +822,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ onSave, collections, ini
                   className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
                   style={{fontFamily: selectedFont}}
                 >
-                  <FontIcon className="w-3 h-3" /> {selectedFont.split(',')[0]} ▼
+                  <Type className="w-3 h-3" /> {selectedFont.split(',')[0]} ▼
                 </button>
                 {showFontDropdown && (
                   <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-slate-700 shadow-xl rounded-lg border border-[#DEE3EA] dark:border-slate-600 w-48 max-h-60 overflow-y-auto">
