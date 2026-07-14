@@ -260,7 +260,9 @@ const App: React.FC = () => {
       <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/90 backdrop-blur border-b border-[#DEE3EA] dark:border-slate-700/50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 h-auto sm:h-16 py-2 sm:py-0 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-3">
-                <img src="/logo.png" alt="Luciano's Scribe" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg" />
+                <div className={`${accentBg} p-1.5 sm:p-2 rounded-lg sm:rounded-xl`}>
+                    <Book className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
                 <h1 className="font-display text-lg sm:text-xl font-semibold tracking-tight text-slate-900 dark:text-white hidden xs:block sm:block">Luciano's Scribe</h1>
             </div>
 

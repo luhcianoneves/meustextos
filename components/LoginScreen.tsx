@@ -66,7 +66,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.png" alt="Luciano's Scribe" className="w-12 h-12 rounded-lg" />
+            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+              <PenLine className="w-8 h-8 text-white" />
+            </div>
             <span className="font-display text-2xl font-semibold text-white tracking-tight">Luciano's Scribe</span>
           </div>
 
@@ -91,7 +93,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 bg-[#F3F5F8]">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <img src="/logo.png" alt="Luciano's Scribe" className="w-10 h-10 rounded-lg" />
+            <div className="bg-[#3B6FE0] p-2 rounded-lg">
+              <PenLine className="w-6 h-6 text-white" />
+            </div>
             <span className="font-display text-xl font-semibold text-slate-900">Luciano's Scribe</span>
           </div>
 
