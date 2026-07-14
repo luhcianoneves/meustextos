@@ -425,7 +425,7 @@ const filteredEntries = useMemo(() => {
           onClick={() => setModalEntry(null)}
         >
           <div
-            className={`bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col animate-scale-in mx-auto my-8 ${sepiaMode ? 'sepia-bg' : ''}`}
+            className={`bg-white dark:bg-slate-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col min-h-[60vh] max-h-[95vh] animate-scale-in mx-auto my-4 ${sepiaMode ? 'sepia-bg' : ''}`}
             onClick={e => e.stopPropagation()}
           >
             {/* Reading Progress Bar */}
