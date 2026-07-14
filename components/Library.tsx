@@ -421,11 +421,11 @@ const filteredEntries = useMemo(() => {
       {/* Text Reader Modal */}
       {modalEntry && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto"
           onClick={() => setModalEntry(null)}
         >
           <div
-            className={`bg-white dark:bg-slate-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col min-h-[70vh] max-h-[calc(100vh-2rem)] animate-scale-in ${sepiaMode ? 'sepia-bg' : ''}`}
+            className={`bg-white dark:bg-slate-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col min-h-[60vh] max-h-[95vh] animate-scale-in mx-auto mt-24 mb-8 ${sepiaMode ? 'sepia-bg' : ''}`}
             onClick={e => e.stopPropagation()}
           >
             {/* Reading Progress Bar */}
